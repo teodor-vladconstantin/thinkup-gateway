@@ -115,14 +115,3 @@ const { data: posts } = useQuery({
     </div>
   );
 }
-                <TableCell colSpan={4} className="h-32 text-center text-gray-500">
-                  No blog posts found.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
-    </div>
-  );
-}

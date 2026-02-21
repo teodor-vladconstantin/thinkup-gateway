@@ -356,41 +356,4 @@ export default function AdminMembers() {
       </Dialog>
     </div>
   );
-}                  checked={form.visible}
-                  onCheckedChange={(v) => setForm((f) => ({ ...f, visible: v }))}
-                />
-                <Label htmlFor="visible-mode">Visible on site</Label>
-              </div>
-            </div>
-
-            <div className="col-span-2 space-y-2 border-t pt-4 mt-2">
-              <Label>Profile Photo</Label>
-              <div className="flex gap-4 items-start">
-                {form.photo_url && (
-                  <img src={form.photo_url} alt="Preview" className="w-16 h-16 rounded-full object-cover border" />
-                )}
-                <div className="w-full space-y-2">
-                  <Input type="file" accept="image/*" onChange={handleFileUpload} className="cursor-pointer" />
-                  <div className="text-xs text-gray-500 text-center uppercase tracking-wider font-semibold">OR</div>
-                  <Input
-                    value={form.photo_url}
-                    onChange={(e) => setForm((f) => ({ ...f, photo_url: e.target.value }))}
-                    placeholder="Paste image URL directly..."
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <Button
-            onClick={() => save.mutate()}
-            disabled={save.isPending}
-            className="w-full bg-primary hover:bg-primary/90 text-white mt-4"
-          >
-            {save.isPending ? "Saving..." : "Save Member"}
-          </Button>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
 }
