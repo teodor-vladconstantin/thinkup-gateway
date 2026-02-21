@@ -27,7 +27,8 @@ export default function AdminPartners() {
       const { data } = await supabase
         .from("partners")
         .select("*")
-        .order("created_at", { ascending: true }); // Stable sort by creation date
+        .order("created_at", { ascending: true })
+        .order("id", { ascending: true }); // Absolute stable sort
       return data ?? []; 
     },
   });
