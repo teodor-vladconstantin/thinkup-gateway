@@ -27,9 +27,7 @@ export default function AdminPartners() {
       const { data } = await supabase
         .from("partners")
         .select("*")
-        .order("order_index", { ascending: true })
-        // Secondary sort to prevent jumping when editing
-        .order("created_at", { ascending: false }); 
+        .order("created_at", { ascending: true }); // Stable sort by creation date
       return data ?? []; 
     },
   });
