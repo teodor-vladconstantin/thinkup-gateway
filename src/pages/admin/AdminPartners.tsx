@@ -23,7 +23,15 @@ export default function AdminPartners() {
 
   const { data: partners } = useQuery({
     queryKey: ["admin-partners"],
-    queryFn: async () => { const { data } = await supabase.from("partners").select("*").order("order_index"); return data ?? []; },
+    queryFn: async () => { 
+      const { data } = await supabase
+        .from("partners")
+        .select("*")
+        .order("order_index", { ascending: true })
+        // Secondary sort to prevent jumping when editing
+        .order("created_at", { ascending: false }); 
+      return data ?? []; 
+    },
   });
 
   const save = useMutation({
