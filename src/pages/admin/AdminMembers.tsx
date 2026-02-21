@@ -48,7 +48,11 @@ export default function AdminMembers() {
   const { data: members, isLoading } = useQuery({
     queryKey: ["admin-members"],
     queryFn: async () => {
-      const { data } = await supabase.from("members").select("*").order("order_index");
+      const { data } = await supabase
+        .from("members")
+        .select("*")
+        .order("created_at", { ascending: true })
+        .order("id", { ascending: true });
       return data ?? [];
     },
   });

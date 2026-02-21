@@ -16,9 +16,16 @@ export default function AdminBlog() {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const { data: posts } = useQuery({
+const { data: posts } = useQuery({
     queryKey: ["admin-posts"],
-    queryFn: async () => { const { data } = await supabase.from("posts").select("*").order("created_at", { ascending: false }); return data ?? []; },
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("posts")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: true });
+      return data ?? [];
+    },
   });
 
   const togglePub = useMutation({
