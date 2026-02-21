@@ -29,20 +29,60 @@ export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (!session?.user) { navigate("/admin/login"); return; }
-      setUser(session.user);
-      const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", session.user.id);
-      const r = roles?.[0]?.role ?? null;
-      setRole(r);
-      if (!r || r === "mentor") { await supabase.auth.signOut(); navigate("/admin/login"); return; }
-      const { data: prof } = await supabase.from("profiles").select("*").eq("user_id", session.user.id).single();
-      setProfile(prof);
-      setLoading(false);
+    const checkUser = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          setLoading(false);
+          navigate("/admin/login");
+          return;
+        }
+
+        const { data: roles, error: rolesError } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", session.user.id);
+
+        if (rolesError) throw rolesError;
+
+        const userRole = roles?.[0]?.role ?? null;
+        
+        // If not admin/super_admin, kick out
+        if (!userRole || (userRole !== "admin" && userRole !== "super_admin")) {
+          await supabase.auth.signOut();
+          navigate("/admin/login");
+          return;
+        }
+
+        setUser(session.user);
+        setRole(userRole);
+
+        const { data: prof } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("user_id", session.user.id)
+          .single();
+          
+        setProfile(prof);
+      } catch (error) {
+        console.error("Auth check failed:", error);
+        navigate("/admin/login");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkUser();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_OUT' || !session) {
+        setUser(null);
+        setRole(null);
+        setProfile(null);
+        navigate("/admin/login");
+      }
     });
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) { setLoading(false); navigate("/admin/login"); }
-    });
+
     return () => subscription.unsubscribe();
   }, [navigate]);
 
