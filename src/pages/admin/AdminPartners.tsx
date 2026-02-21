@@ -80,61 +80,61 @@ export default function AdminPartners() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <div className="flex items-center justify-between mb-8">
+    <div className="max-w-6xl mx-auto py-8 px-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
         <div>
-           <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Partners</h1>
-           <p className="text-gray-500 mt-1">Manage strategic partnerships and supporters.</p>
+           <h1 className="text-3xl font-bold tracking-tight text-foreground">Partners</h1>
+           <p className="text-muted-foreground mt-1">Manage strategic partnerships and supporters.</p>
         </div>
-        <Button onClick={() => { setEditing(null); setForm(empty); setOpen(true); }} className="bg-primary hover:bg-primary/90 text-white shadow-sm">
+        <Button onClick={() => { setEditing(null); setForm(empty); setOpen(true); }} className="shadow-sm">
           <Plus className="h-4 w-4 mr-2" /> Add Partner
         </Button>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="card-base overflow-hidden">
         <Table>
-          <TableHeader className="bg-gray-50/50">
+          <TableHeader className="bg-muted/50">
             <TableRow>
               <TableHead className="w-[100px]">Logo</TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Website</TableHead>
-              <TableHead className="w-[100px] text-center">Status</TableHead>
+              <TableHead className="w-[100px]">Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {partners?.map((p) => (
-              <TableRow key={p.id} className="hover:bg-gray-50/50 transition-colors">
+              <TableRow key={p.id} className="hover:bg-muted/50 transition-colors">
                 <TableCell>
-                  <div className="h-12 w-20 flex items-center justify-center bg-gray-50 rounded border p-1">
-                    {p.logo_url ? <img src={p.logo_url} className="max-h-full max-w-full object-contain" alt={p.name} /> : <span className="text-xs text-gray-300">No logo</span>}
+                  <div className="h-12 w-20 flex items-center justify-center bg-muted/50 rounded border p-1">
+                    {p.logo_url ? <img src={p.logo_url} className="max-h-full max-w-full object-contain" alt={p.name} /> : <span className="text-xs text-muted-foreground">No logo</span>}
                   </div>
                 </TableCell>
-                <TableCell className="font-semibold text-gray-900">{p.name}</TableCell>
+                <TableCell className="font-medium text-foreground">{p.name}</TableCell>
                 <TableCell>
-                   <a href={p.website_url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline text-sm truncate max-w-[200px] block">
+                   <a href={p.website_url} target="_blank" rel="noreferrer" className="text-primary hover:underline text-sm truncate max-w-[200px] block">
                     {p.website_url || "-"}
                   </a>
                 </TableCell>
-                <TableCell className="text-center">
-
-                  <div className="flex items-center justify-center gap-2">
+                <TableCell>
+                  <div className="flex items-center gap-2">
                     <Switch
                       checked={p.visible} 
                       onCheckedChange={(v) => toggleVis.mutate({ id: p.id, visible: v })} 
+                      className="data-[state=checked]:bg-primary"
                     />
-                    <Badge variant={p.visible ? "default" : "secondary"} className={p.visible ? "bg-green-500 hover:bg-green-600" : "bg-gray-200 text-gray-500 hover:bg-gray-300"}>
+                    <Badge variant={p.visible ? "default" : "secondary"} className={p.visible ? "bg-green-500 hover:bg-green-600" : ""}>
                       {p.visible ? "Visible" : "Hidden"}
                     </Badge>
                   </div>
                 </TableCell>
                 <TableCell>
                   <div className="flex justify-end gap-2">
-                    <Button variant="outline" size="sm" className="h-8 w-8 p-0" onClick={() => { setEditing(p.id); setForm({ name: p.name, logo_url: p.logo_url ?? "", website_url: p.website_url ?? "", order_index: p.order_index, visible: p.visible }); setOpen(true); }}>
-                      <Pencil className="h-4 w-4 text-gray-500" />
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => { setEditing(p.id); setForm({ name: p.name, logo_url: p.logo_url ?? "", website_url: p.website_url ?? "", order_index: p.order_index, visible: p.visible }); setOpen(true); }}>
+                      <Pencil className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="sm" className="h-8 w-8 p-0 hover:bg-red-50 border-red-200" onClick={() => { if (confirm("Delete partner?")) del.mutate(p.id); }}>
-                      <Trash2 className="h-4 w-4 text-red-500" />
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10" onClick={() => { if (confirm("Delete partner?")) del.mutate(p.id); }}>
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </TableCell>
@@ -142,8 +142,10 @@ export default function AdminPartners() {
             ))}
             {partners?.length === 0 && (
               <TableRow>
-                <TableCell colSpan={5} className="h-32 text-center text-gray-500">
-                  No partners added yet.
+                <TableCell colSpan={5} className="h-32 text-center text-muted-foreground">
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <p>No partners added yet.</p>
+                  </div>
                 </TableCell>
               </TableRow>
             )}
@@ -166,11 +168,9 @@ export default function AdminPartners() {
               <div className="grid gap-2">
                 <Label>Logo Image</Label>
                  <div className="flex gap-4 items-start">
-                  {form.logo_url && (
-                    <div className="h-16 w-16 border rounded bg-gray-50 flex items-center justify-center p-1 shrink-0">
-                       <img src={form.logo_url} alt="Preview" className="max-h-full max-w-full object-contain" />
-                    </div>
-                  )}
+                  <div className="shrink-0 h-16 w-16 border rounded bg-muted/50 flex items-center justify-center p-1">
+                     {form.logo_url ? <img src={form.logo_url} alt="Preview" className="max-h-full max-w-full object-contain" /> : <span className="text-xs text-muted-foreground">Preview</span>}
+                  </div>
                   <div className="w-full space-y-2">
                     <Input 
                       type="file" 
@@ -178,7 +178,11 @@ export default function AdminPartners() {
                       onChange={handleFileUpload}
                       className="cursor-pointer"
                     />
-                     <div className="text-xs text-center text-gray-400 font-medium tracking-wider uppercase">OR</div>
+                     <div className="relative flex items-center py-1">
+                        <div className="grow border-t border-muted"></div>
+                        <span className="shrink-0 text-xs text-muted-foreground px-2 uppercase">OR URL</span>
+                        <div className="grow border-t border-muted"></div>
+                     </div>
                     <Input 
                       value={form.logo_url} 
                       onChange={(e) => setForm((f) => ({ ...f, logo_url: e.target.value }))} 
@@ -201,15 +205,17 @@ export default function AdminPartners() {
                    <div className="flex items-end pb-2">
                      <div className="flex items-center space-x-2">
                       <Switch id="visible" checked={form.visible} onCheckedChange={(v) => setForm((f) => ({ ...f, visible: v }))} />
-                      <Label htmlFor="visible">Visible on site</Label>
+                      <Label htmlFor="visible" className="cursor-pointer">Visible on site</Label>
                     </div>
                   </div>
                </div>
             </div>
             
-            <Button onClick={() => save.mutate()} disabled={save.isPending} className="w-full bg-primary text-white">
-              {save.isPending ? "Saving..." : "Save Partner"}
-            </Button>
+            <div className="flex justify-end pt-2">
+              <Button onClick={() => save.mutate()} disabled={save.isPending} className="min-w-[100px]">
+                {save.isPending ? "Saving..." : "Save Partner"}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

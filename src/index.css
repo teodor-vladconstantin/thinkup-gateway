@@ -71,4 +71,9 @@
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
   }
+
+  /* Utility class for consistent cards */
+  .card-base {
+    @apply bg-card rounded-xl shadow-sm border border-border;
+  }
 }

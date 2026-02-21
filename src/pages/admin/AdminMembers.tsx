@@ -142,19 +142,19 @@ export default function AdminMembers() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <div className="flex items-center justify-between mb-8">
+    <div className="max-w-6xl mx-auto py-8 px-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Members</h1>
-          <p className="text-gray-500 mt-1">Manage team members, roles, and visibility.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">Members</h1>
+          <p className="text-muted-foreground mt-1">Manage team members, roles, and visibility.</p>
         </div>
-        <div className="flex gap-4">
+        <div className="flex items-center gap-4">
           <Select value={filter} onValueChange={setFilter}>
-            <SelectTrigger className="w-48 bg-white">
-              <SelectValue />
+            <SelectTrigger className="w-48 bg-background">
+              <SelectValue placeholder="Department" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All departments</SelectItem>
+              <SelectItem value="all">All Departments</SelectItem>
               {departments?.map((d) => (
                 <SelectItem key={d.id} value={d.name}>
                   {d.name}
@@ -162,78 +162,81 @@ export default function AdminMembers() {
               ))}
             </SelectContent>
           </Select>
-          <Button onClick={openNew} className="bg-primary hover:bg-primary/90 text-white shadow-sm">
+          <Button onClick={openNew} className="shadow-sm">
             <Plus className="h-4 w-4 mr-2" /> Add Member
           </Button>
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+      <div className="card-base overflow-hidden">
         <Table>
-          <TableHeader className="bg-gray-50/50">
+          <TableHeader className="bg-muted/50">
             <TableRow>
               <TableHead className="w-[80px]">Photo</TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Role</TableHead>
               <TableHead>Department</TableHead>
-              <TableHead className="w-[100px]">Status</TableHead>
+              <TableHead className="w-[100px]">Visible</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered?.map((m) => (
-              <TableRow key={m.id} className="hover:bg-gray-50/50 transition-colors">
+            {isLoading ? (
+               <TableRow>
+                  <TableCell colSpan={6} className="h-24 text-center">Loading...</TableCell>
+               </TableRow>
+            ) : filtered?.map((m) => (
+              <TableRow key={m.id} className="hover:bg-muted/50 transition-colors">
                 <TableCell>
                   {m.photo_url ? (
-                    <img src={m.photo_url} alt={m.full_name} className="w-10 h-10 rounded-full object-cover border border-gray-100 shadow-sm" />
+                    <img src={m.photo_url} alt={m.full_name} className="w-10 h-10 rounded-full object-cover border shadow-sm" />
                   ) : (
-                    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
+                    <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
                       <User className="h-5 w-5" />
                     </div>
                   )}
                 </TableCell>
-                <TableCell className="font-semibold text-gray-900">{m.full_name}</TableCell>
-                <TableCell className="text-gray-600 font-medium">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
+                <TableCell className="font-medium text-foreground">{m.full_name}</TableCell>
+                <TableCell>
+                  <Badge variant="secondary" className="font-normal text-xs">
                     {m.role}
-                  </span>
+                  </Badge>
                 </TableCell>
-                <TableCell className="text-gray-600">{m.department}</TableCell>
+                <TableCell className="text-muted-foreground">{m.department}</TableCell>
 
                 <TableCell>
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      checked={m.visible}
-                      onCheckedChange={(v) => toggleVis.mutate({ id: m.id, visible: v })}
-                    />
-                    <Badge variant={m.visible ? "default" : "secondary"} className={m.visible ? "bg-green-500 hover:bg-green-600" : "bg-gray-200 text-gray-500 hover:bg-gray-300"}>
-                      {m.visible ? "Visible" : "Hidden"}
-                    </Badge>
-                  </div>
+                  <Switch
+                    checked={m.visible}
+                    onCheckedChange={(v) => toggleVis.mutate({ id: m.id, visible: v })}
+                    className="data-[state=checked]:bg-primary"
+                  />
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
-                    <Button variant="outline" size="sm" className="h-8 w-8 p-0" onClick={() => openEdit(m)}>
-                      <Pencil className="h-4 w-4 text-gray-500" />
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => openEdit(m)}>
+                      <Pencil className="h-4 w-4" />
                     </Button>
                     <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600 border-red-200"
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                       onClick={() => {
                         if (confirm("Delete this member?")) del.mutate(m.id);
                       }}
                     >
-                      <Trash2 className="h-4 w-4 text-red-500" />
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </TableCell>
               </TableRow>
             ))}
-            {filtered?.length === 0 && (
+            {!isLoading && filtered?.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center text-gray-500">
-                  No members found in this department.
+                <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <User className="h-8 w-8 opacity-20" />
+                    <p>No members found</p>
+                  </div>
                 </TableCell>
               </TableRow>
             )}
@@ -244,19 +247,19 @@ export default function AdminMembers() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>{editing ? "Edit Member" : "Add Member"}</DialogTitle>
+            <DialogTitle>{editing ? "Edit Member" : "Add New Member"}</DialogTitle>
           </DialogHeader>
-          <div className="grid grid-cols-2 gap-4 py-4">
-            <div className="col-span-2">
-              <Label>Full Name</Label>
-              <Input value={form.full_name} onChange={(e) => setForm((f) => ({ ...f, full_name: e.target.value }))} />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
+            <div className="space-y-2 col-span-2">
+              <Label htmlFor="full_name">Full Name</Label>
+              <Input id="full_name" value={form.full_name} onChange={(e) => setForm((f) => ({ ...f, full_name: e.target.value }))} placeholder="e.g. John Doe" />
             </div>
 
-            <div>
-              <Label>Role</Label>
+            <div className="space-y-2">
+              <Label htmlFor="role">Role</Label>
               <Select value={form.role} onValueChange={(v) => setForm((f) => ({ ...f, role: v }))}>
-                <SelectTrigger>
-                  <SelectValue />
+                <SelectTrigger id="role">
+                  <SelectValue placeholder="Select role" />
                 </SelectTrigger>
                 <SelectContent>
                   {["Președinte", "CEO", "Vicepreședinte", "Director", "Mentor"].map((r) => (
@@ -268,10 +271,10 @@ export default function AdminMembers() {
               </Select>
             </div>
 
-            <div>
-              <Label>Department</Label>
+            <div className="space-y-2">
+              <Label htmlFor="department">Department</Label>
               <Select value={form.department} onValueChange={(v) => setForm((f) => ({ ...f, department: v }))}>
-                <SelectTrigger>
+                <SelectTrigger id="department">
                   <SelectValue placeholder="Select department" />
                 </SelectTrigger>
                 <SelectContent>
@@ -284,20 +287,76 @@ export default function AdminMembers() {
               </Select>
             </div>
 
-            <div>
-              <Label>Order Index</Label>
+            <div className="space-y-2">
+              <Label htmlFor="order">Display Order</Label>
               <Input
+                id="order"
                 type="number"
                 value={form.order_index}
                 onChange={(e) => setForm((f) => ({ ...f, order_index: parseInt(e.target.value) || 0 }))}
               />
             </div>
 
-            <div className="flex items-end pb-2">
+            <div className="space-y-2 flex flex-col justify-end pb-2">
               <div className="flex items-center space-x-2">
-                <Switch
-                  id="visible-mode"
+                 <Switch
+                  id="visible"
                   checked={form.visible}
+                  onCheckedChange={(v) => setForm((f) => ({ ...f, visible: v }))}
+                />
+                <Label htmlFor="visible" className="cursor-pointer">Visible on site</Label>
+              </div>
+            </div>
+
+            <div className="col-span-1 md:col-span-2 space-y-4 pt-4 border-t">
+              <Label>Profile Photo</Label>
+              <div className="flex items-start gap-6">
+                <div className="shrink-0">
+                  {form.photo_url ? (
+                    <img src={form.photo_url} alt="Preview" className="w-20 h-20 rounded-full object-cover border shadow-sm" />
+                  ) : (
+                    <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center text-muted-foreground border border-dashed">
+                      <User className="h-8 w-8 opacity-50" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 space-y-3">
+                  <div className="grid w-full max-w-sm items-center gap-1.5">
+                    <Label htmlFor="picture">Upload Image</Label>
+                    <Input id="picture" type="file" accept="image/*" onChange={handleFileUpload} className="cursor-pointer" />
+                  </div>
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <span className="w-full border-t" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-background px-2 text-muted-foreground">Or using URL</span>
+                    </div>
+                  </div>
+                  <Input
+                    value={form.photo_url}
+                    onChange={(e) => setForm((f) => ({ ...f, photo_url: e.target.value }))}
+                    placeholder="https://..."
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-4">
+             <Button
+                onClick={() => save.mutate()}
+                disabled={save.isPending}
+                className="min-w-[120px]"
+              >
+                {save.isPending ? "Saving..." : "Save Member"}
+              </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}                  checked={form.visible}
                   onCheckedChange={(v) => setForm((f) => ({ ...f, visible: v }))}
                 />
                 <Label htmlFor="visible-mode">Visible on site</Label>
