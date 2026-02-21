@@ -12,6 +12,7 @@ import { Plus, Pencil, Trash2 } from "lucide-react";
 
 type PartnerForm = { name: string; logo_url: string; website_url: string; order_index: number; visible: boolean };
 const empty: PartnerForm = { name: "", logo_url: "", website_url: "", order_index: 0, visible: true };
+import { Badge } from "@/components/ui/badge";
 
 export default function AdminPartners() {
   const qc = useQueryClient();
@@ -109,7 +110,16 @@ export default function AdminPartners() {
                   </a>
                 </TableCell>
                 <TableCell className="text-center">
-                  <Switch checked={p.visible} onCheckedChange={(v) => toggleVis.mutate({ id: p.id, visible: v })} />
+
+                  <div className="flex items-center justify-center gap-2">
+                    <Switch
+                      checked={p.visible} 
+                      onCheckedChange={(v) => toggleVis.mutate({ id: p.id, visible: v })} 
+                    />
+                    <Badge variant={p.visible ? "default" : "secondary"} className={p.visible ? "bg-green-500 hover:bg-green-600" : "bg-gray-200 text-gray-500 hover:bg-gray-300"}>
+                      {p.visible ? "Visible" : "Hidden"}
+                    </Badge>
+                  </div>
                 </TableCell>
                 <TableCell>
                   <div className="flex justify-end gap-2">
