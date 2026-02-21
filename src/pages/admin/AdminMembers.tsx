@@ -29,6 +29,8 @@ const empty: MemberForm = {
   photo_url: "",
 };
 
+import { Badge } from "@/components/ui/badge";
+
 export default function AdminMembers() {
   const qc = useQueryClient();
   const { toast } = useToast();
@@ -197,8 +199,17 @@ export default function AdminMembers() {
                   </span>
                 </TableCell>
                 <TableCell className="text-gray-600">{m.department}</TableCell>
+
                 <TableCell>
-                  <Switch checked={m.visible} onCheckedChange={(v) => toggleVis.mutate({ id: m.id, visible: v })} />
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      checked={m.visible}
+                      onCheckedChange={(v) => toggleVis.mutate({ id: m.id, visible: v })}
+                    />
+                    <Badge variant={m.visible ? "default" : "secondary"} className={m.visible ? "bg-green-500 hover:bg-green-600" : "bg-gray-200 text-gray-500 hover:bg-gray-300"}>
+                      {m.visible ? "Visible" : "Hidden"}
+                    </Badge>
+                  </div>
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">

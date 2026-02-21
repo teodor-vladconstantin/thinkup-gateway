@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
 
 export default function AdminBlog() {
   const qc = useQueryClient();
@@ -71,8 +71,14 @@ const { data: posts } = useQuery({
                     )}
                   </div>
                 </TableCell>
+
                 <TableCell className="text-center">
-                  <Switch checked={p.published} onCheckedChange={(v) => togglePub.mutate({ id: p.id, published: v })} />
+                  <div className="flex items-center justify-center gap-2">
+                    <Switch checked={p.published} onCheckedChange={(v) => togglePub.mutate({ id: p.id, published: v })} />
+                      <Badge variant={p.published ? "default" : "secondary"} className={p.published ? "bg-green-500 hover:bg-green-600" : "bg-gray-200 text-gray-500 hover:bg-gray-300"}>
+                        {p.published ? "Published" : "Draft"}
+                      </Badge>
+                  </div>
                 </TableCell>
                 <TableCell className="text-sm text-gray-500 font-medium">
                   {new Date(p.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
