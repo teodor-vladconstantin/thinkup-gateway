@@ -23,25 +23,56 @@ export default function AdminApplications() {
   });
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Applications</h1>
-      <div className="bg-white rounded-xl shadow-sm border overflow-auto">
+    <div className="max-w-6xl mx-auto p-6">
+      <div className="mb-8">
+         <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Applications</h1>
+         <p className="text-gray-500 mt-1">Review incoming membership applications.</p>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <Table>
-          <TableHeader><TableRow><TableHead>Name</TableHead><TableHead>Email</TableHead><TableHead>School</TableHead><TableHead>Reason</TableHead><TableHead>Date</TableHead><TableHead>Actions</TableHead></TableRow></TableHeader>
+          <TableHeader className="bg-gray-50/50">
+            <TableRow>
+              <TableHead>Applicant</TableHead>
+              <TableHead>School</TableHead>
+              <TableHead>Reason</TableHead>
+              <TableHead className="w-[150px]">Date</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
           <TableBody>
             {apps?.map((a) => (
-              <TableRow key={a.id}>
-                <TableCell className="font-medium">{a.first_name} {a.last_name}</TableCell>
-                <TableCell>{a.email}</TableCell>
-                <TableCell>{a.school}</TableCell>
-                <TableCell>{a.reason}</TableCell>
-                <TableCell className="text-sm text-gray-500">{new Date(a.created_at).toLocaleDateString()}</TableCell>
-                <TableCell className="flex gap-2">
-                  <Button variant="ghost" size="icon" onClick={() => setViewing(a)}><Eye className="h-4 w-4" /></Button>
-                  <Button variant="ghost" size="icon" onClick={() => { if (confirm("Delete?")) del.mutate(a.id); }}><Trash2 className="h-4 w-4 text-red-500" /></Button>
+              <TableRow key={a.id} className="hover:bg-gray-50/50 transition-colors">
+                <TableCell>
+                  <div className="flex flex-col">
+                    <span className="font-semibold text-gray-900">{a.first_name} {a.last_name}</span>
+                    <span className="text-xs text-gray-500">{a.email}</span>
+                  </div>
+                </TableCell>
+                <TableCell className="text-gray-600">{a.school}</TableCell>
+                <TableCell className="max-w-xs truncate text-gray-500" title={a.reason}>{a.reason}</TableCell>
+                <TableCell className="text-sm text-gray-500 font-medium">
+                  {new Date(a.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                </TableCell>
+                <TableCell>
+                  <div className="flex justify-end gap-2">
+                    <Button variant="outline" size="sm" className="h-8 w-8 p-0" onClick={() => setViewing(a)}>
+                      <Eye className="h-4 w-4 text-gray-500" />
+                    </Button>
+                    <Button variant="outline" size="sm" className="h-8 w-8 p-0 hover:bg-red-50 border-red-200" onClick={() => { if (confirm("Delete application?")) del.mutate(a.id); }}>
+                      <Trash2 className="h-4 w-4 text-red-500" />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
+             {apps?.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={5} className="h-32 text-center text-gray-500">
+                  No applications received yet.
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </div>

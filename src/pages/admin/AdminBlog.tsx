@@ -32,26 +32,63 @@ export default function AdminBlog() {
   });
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Blog Posts</h1>
-        <Button onClick={() => navigate("/admin/blog/new")} className="bg-[hsl(263,91%,76%)] text-white"><Plus className="h-4 w-4 mr-1" /> New Post</Button>
+    <div className="max-w-6xl mx-auto p-6">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+           <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Blog Posts</h1>
+           <p className="text-gray-500 mt-1">Manage articles, news, and updates.</p>
+        </div>
+        <Button onClick={() => navigate("/admin/blog/new")} className="bg-primary hover:bg-primary/90 text-white shadow-sm">
+          <Plus className="h-4 w-4 mr-2" /> New Post
+        </Button>
       </div>
-      <div className="bg-white rounded-xl shadow-sm border overflow-auto">
+
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <Table>
-          <TableHeader><TableRow><TableHead>Title</TableHead><TableHead>Published</TableHead><TableHead>Date</TableHead><TableHead>Actions</TableHead></TableRow></TableHeader>
+          <TableHeader className="bg-gray-50/50">
+            <TableRow>
+              <TableHead className="w-[60%]">Title & Excerpt</TableHead>
+              <TableHead className="w-[100px] text-center">Status</TableHead>
+              <TableHead className="w-[150px]">Date</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
           <TableBody>
-            {posts?.map((p) => (
-              <TableRow key={p.id}>
-                <TableCell className="font-medium">{p.title}</TableCell>
-                <TableCell><Switch checked={p.published} onCheckedChange={(v) => togglePub.mutate({ id: p.id, published: v })} /></TableCell>
-                <TableCell className="text-sm text-gray-500">{new Date(p.created_at).toLocaleDateString()}</TableCell>
-                <TableCell className="flex gap-2">
-                  <Button variant="ghost" size="icon" onClick={() => navigate(`/admin/blog/${p.id}`)}><Pencil className="h-4 w-4" /></Button>
-                  <Button variant="ghost" size="icon" onClick={() => { if (confirm("Delete?")) del.mutate(p.id); }}><Trash2 className="h-4 w-4 text-red-500" /></Button>
+             {posts?.map((p) => (
+              <TableRow key={p.id} className="hover:bg-gray-50/50 transition-colors">
+                <TableCell>
+                  <div className="flex flex-col gap-1 py-1">
+                    <span className="font-semibold text-gray-900 text-base">{p.title}</span>
+                    {p.excerpt && (
+                      <span className="text-sm text-gray-500 line-clamp-1 max-w-md">{p.excerpt}</span>
+                    )}
+                  </div>
+                </TableCell>
+                <TableCell className="text-center">
+                  <Switch checked={p.published} onCheckedChange={(v) => togglePub.mutate({ id: p.id, published: v })} />
+                </TableCell>
+                <TableCell className="text-sm text-gray-500 font-medium">
+                  {new Date(p.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                </TableCell>
+                <TableCell>
+                   <div className="flex justify-end gap-2">
+                    <Button variant="outline" size="sm" className="h-8 w-8 p-0" onClick={() => navigate(`/admin/blog/${p.id}`)}>
+                      <Pencil className="h-4 w-4 text-gray-500" />
+                    </Button>
+                    <Button variant="outline" size="sm" className="h-8 w-8 p-0 hover:bg-red-50 border-red-200" onClick={() => { if (confirm("Delete?")) del.mutate(p.id); }}>
+                      <Trash2 className="h-4 w-4 text-red-500" />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
+             {posts?.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={4} className="h-32 text-center text-gray-500">
+                  No blog posts found.
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </div>
