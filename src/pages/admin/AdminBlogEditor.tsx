@@ -41,6 +41,32 @@ export default function AdminBlogEditor() {
     navigate("/admin/blog");
   };
 
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `blog-${crypto.randomUUID()}.${fileExt}`;
+      const filePath = `blog/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('media')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('media')
+        .getPublicUrl(filePath);
+
+      setForm((f) => ({ ...f, cover_image_url: publicUrl }));
+      toast({ title: "Image uploaded successfully!" });
+    } catch (error: any) {
+      toast({ title: "Error uploading image", description: error.message, variant: "destructive" });
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto py-8">
       <div className="flex items-center justify-between mb-8">
@@ -131,7 +157,7 @@ export default function AdminBlogEditor() {
           <div className="card-base p-6 space-y-4">
             <div className="space-y-2">
               <Label htmlFor="cover_image">Cover Image</Label>
-              <div className="aspect-video bg-muted rounded-lg overflow-hidden border">
+              <div className="aspect-video bg-muted rounded-lg overflow-hidden border relative group">
                 {form.cover_image_url ? (
                   <img src={form.cover_image_url} alt="Cover" className="w-full h-full object-cover" />
                 ) : (
@@ -140,13 +166,29 @@ export default function AdminBlogEditor() {
                   </div>
                 )}
               </div>
-              <Input 
-                id="cover_image" 
-                placeholder="https://..." 
-                value={form.cover_image_url} 
-                onChange={(e) => setForm((f) => ({ ...f, cover_image_url: e.target.value }))} 
-              />
-              <p className="text-xs text-muted-foreground">URL for the cover image.</p>
+              
+              <div className="space-y-4">
+                <div className="grid w-full items-center gap-1.5">
+                  <Label htmlFor="picture">Upload Image</Label>
+                  <Input id="picture" type="file" accept="image/*" onChange={handleFileUpload} className="cursor-pointer" />
+                </div>
+                
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">Or using URL</span>
+                  </div>
+                </div>
+
+                <Input 
+                  id="cover_image" 
+                  placeholder="https://..." 
+                  value={form.cover_image_url} 
+                  onChange={(e) => setForm((f) => ({ ...f, cover_image_url: e.target.value }))} 
+                />
+              </div>
             </div>
           </div>
         </div>
