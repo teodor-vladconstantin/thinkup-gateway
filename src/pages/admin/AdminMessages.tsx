@@ -23,24 +23,54 @@ export default function AdminMessages() {
   });
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Messages</h1>
-      <div className="bg-white rounded-xl shadow-sm border overflow-auto">
+    <div className="max-w-6xl mx-auto p-6">
+      <div className="mb-8">
+         <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Messages</h1>
+         <p className="text-gray-500 mt-1">Inbox for contact form submissions.</p>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <Table>
-          <TableHeader><TableRow><TableHead>Name</TableHead><TableHead>Email</TableHead><TableHead>Subject</TableHead><TableHead>Date</TableHead><TableHead>Actions</TableHead></TableRow></TableHeader>
+          <TableHeader className="bg-gray-50/50">
+            <TableRow>
+              <TableHead>Sender</TableHead>
+              <TableHead>Subject</TableHead>
+              <TableHead className="w-[150px]">Date</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
           <TableBody>
             {msgs?.map((m) => (
-              <TableRow key={m.id}>
-                <TableCell className="font-medium">{m.name}</TableCell>
-                <TableCell>{m.email}</TableCell>
-                <TableCell>{m.subject}</TableCell>
-                <TableCell className="text-sm text-gray-500">{new Date(m.created_at).toLocaleDateString()}</TableCell>
-                <TableCell className="flex gap-2">
-                  <Button variant="ghost" size="icon" onClick={() => setViewing(m)}><Eye className="h-4 w-4" /></Button>
-                  <Button variant="ghost" size="icon" onClick={() => { if (confirm("Delete?")) del.mutate(m.id); }}><Trash2 className="h-4 w-4 text-red-500" /></Button>
+              <TableRow key={m.id} className="hover:bg-gray-50/50 transition-colors">
+                <TableCell>
+                  <div className="flex flex-col">
+                    <span className="font-semibold text-gray-900">{m.name}</span>
+                    <span className="text-xs text-gray-500">{m.email}</span>
+                  </div>
+                </TableCell>
+                <TableCell className="font-medium text-gray-700">{m.subject}</TableCell>
+                <TableCell className="text-sm text-gray-500 font-medium">
+                  {new Date(m.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                </TableCell>
+                <TableCell>
+                  <div className="flex justify-end gap-2">
+                    <Button variant="outline" size="sm" className="h-8 w-8 p-0" onClick={() => setViewing(m)}>
+                      <Eye className="h-4 w-4 text-gray-500" />
+                    </Button>
+                    <Button variant="outline" size="sm" className="h-8 w-8 p-0 hover:bg-red-50 border-red-200" onClick={() => { if (confirm("Delete message?")) del.mutate(m.id); }}>
+                      <Trash2 className="h-4 w-4 text-red-500" />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
+            {msgs?.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={4} className="h-32 text-center text-gray-500">
+                  No messages found.
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </div>

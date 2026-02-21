@@ -28,16 +28,26 @@ export default function AdminDashboard() {
   });
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Dashboard</h1>
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="max-w-6xl mx-auto p-6">
+      <div className="mb-8">
+         <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Dashboard</h1>
+         <p className="text-gray-500 mt-1">Overview of your organization's activity.</p>
+      </div>
+
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
         {stats.map((s) => (
-          <div key={s.key} className="bg-white rounded-xl p-5 shadow-sm border">
-            <div className="flex items-center gap-3 mb-2">
-              <s.icon className="h-5 w-5 text-[hsl(263,91%,76%)]" />
-              <span className="text-sm text-gray-500">{s.label}</span>
+          <div key={s.key} className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-4">
+               <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                <s.icon className="h-6 w-6" />
+               </div>
+               {/* Could add a 'View' link here later */}
             </div>
-            <p className="text-3xl font-bold text-gray-900">{counts?.[s.key as keyof typeof counts] ?? "—"}</p>
+            
+             <div>
+               <p className="text-sm font-medium text-gray-500">{s.label}</p>
+               <p className="text-4xl font-bold text-gray-900 mt-2">{counts?.[s.key as keyof typeof counts] ?? "—"}</p>
+             </div>
           </div>
         ))}
       </div>

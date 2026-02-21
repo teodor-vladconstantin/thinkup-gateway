@@ -44,44 +44,159 @@ export default function AdminPartners() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-partners"] }),
   });
 
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `partner-${crypto.randomUUID()}.${fileExt}`;
+      const filePath = `partners/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('media')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('media')
+        .getPublicUrl(filePath);
+
+      setForm((f) => ({ ...f, logo_url: publicUrl }));
+      toast({ title: "Logo uploaded successfully!" });
+    } catch (error: any) {
+      toast({ title: "Error uploading logo", description: error.message, variant: "destructive" });
+    }
+  };
+
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Partners</h1>
-        <Button onClick={() => { setEditing(null); setForm(empty); setOpen(true); }} className="bg-[hsl(263,91%,76%)] text-white"><Plus className="h-4 w-4 mr-1" /> Add</Button>
+    <div className="max-w-6xl mx-auto p-6">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+           <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Partners</h1>
+           <p className="text-gray-500 mt-1">Manage strategic partnerships and supporters.</p>
+        </div>
+        <Button onClick={() => { setEditing(null); setForm(empty); setOpen(true); }} className="bg-primary hover:bg-primary/90 text-white shadow-sm">
+          <Plus className="h-4 w-4 mr-2" /> Add Partner
+        </Button>
       </div>
-      <div className="bg-white rounded-xl shadow-sm border overflow-auto">
+
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <Table>
-          <TableHeader><TableRow><TableHead>Logo</TableHead><TableHead>Name</TableHead><TableHead>Website</TableHead><TableHead>Visible</TableHead><TableHead>Actions</TableHead></TableRow></TableHeader>
+          <TableHeader className="bg-gray-50/50">
+            <TableRow>
+              <TableHead className="w-[100px]">Logo</TableHead>
+              <TableHead>Name</TableHead>
+              <TableHead>Website</TableHead>
+              <TableHead className="w-[100px] text-center">Status</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
           <TableBody>
             {partners?.map((p) => (
-              <TableRow key={p.id}>
-                <TableCell>{p.logo_url ? <img src={p.logo_url} className="h-8 object-contain" /> : "—"}</TableCell>
-                <TableCell className="font-medium">{p.name}</TableCell>
-                <TableCell className="text-sm">{p.website_url}</TableCell>
-                <TableCell><Switch checked={p.visible} onCheckedChange={(v) => toggleVis.mutate({ id: p.id, visible: v })} /></TableCell>
-                <TableCell className="flex gap-2">
-                  <Button variant="ghost" size="icon" onClick={() => { setEditing(p.id); setForm({ name: p.name, logo_url: p.logo_url ?? "", website_url: p.website_url ?? "", order_index: p.order_index, visible: p.visible }); setOpen(true); }}><Pencil className="h-4 w-4" /></Button>
-                  <Button variant="ghost" size="icon" onClick={() => { if (confirm("Delete?")) del.mutate(p.id); }}><Trash2 className="h-4 w-4 text-red-500" /></Button>
+              <TableRow key={p.id} className="hover:bg-gray-50/50 transition-colors">
+                <TableCell>
+                  <div className="h-12 w-20 flex items-center justify-center bg-gray-50 rounded border p-1">
+                    {p.logo_url ? <img src={p.logo_url} className="max-h-full max-w-full object-contain" alt={p.name} /> : <span className="text-xs text-gray-300">No logo</span>}
+                  </div>
+                </TableCell>
+                <TableCell className="font-semibold text-gray-900">{p.name}</TableCell>
+                <TableCell>
+                   <a href={p.website_url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline text-sm truncate max-w-[200px] block">
+                    {p.website_url || "-"}
+                  </a>
+                </TableCell>
+                <TableCell className="text-center">
+                  <Switch checked={p.visible} onCheckedChange={(v) => toggleVis.mutate({ id: p.id, visible: v })} />
+                </TableCell>
+                <TableCell>
+                  <div className="flex justify-end gap-2">
+                    <Button variant="outline" size="sm" className="h-8 w-8 p-0" onClick={() => { setEditing(p.id); setForm({ name: p.name, logo_url: p.logo_url ?? "", website_url: p.website_url ?? "", order_index: p.order_index, visible: p.visible }); setOpen(true); }}>
+                      <Pencil className="h-4 w-4 text-gray-500" />
+                    </Button>
+                    <Button variant="outline" size="sm" className="h-8 w-8 p-0 hover:bg-red-50 border-red-200" onClick={() => { if (confirm("Delete partner?")) del.mutate(p.id); }}>
+                      <Trash2 className="h-4 w-4 text-red-500" />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
+            {partners?.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={5} className="h-32 text-center text-gray-500">
+                  No partners added yet.
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </div>
+
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>{editing ? "Edit Partner" : "Add Partner"}</DialogTitle></DialogHeader>
-          <div className="space-y-4">
-            <div><Label>Name</Label><Input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} /></div>
-            <div><Label>Logo URL</Label><Input value={form.logo_url} onChange={(e) => setForm((f) => ({ ...f, logo_url: e.target.value }))} /></div>
-            <div><Label>Website URL</Label><Input value={form.website_url} onChange={(e) => setForm((f) => ({ ...f, website_url: e.target.value }))} /></div>
-            <div><Label>Order Index</Label><Input type="number" value={form.order_index} onChange={(e) => setForm((f) => ({ ...f, order_index: parseInt(e.target.value) || 0 }))} /></div>
-            <div className="flex items-center gap-2"><Switch checked={form.visible} onCheckedChange={(v) => setForm((f) => ({ ...f, visible: v }))} /><Label>Visible</Label></div>
-            <Button onClick={() => save.mutate()} disabled={save.isPending} className="w-full bg-[hsl(263,91%,76%)] text-white">{save.isPending ? "Saving..." : "Save"}</Button>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>{editing ? "Edit Partner" : "Add Partner"}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-6 py-4">
+            <div className="grid gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="name">Name</Label>
+                <Input id="name" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} placeholder="Partner Company Name" />
+              </div>
+              
+              <div className="grid gap-2">
+                <Label>Logo Image</Label>
+                 <div className="flex gap-4 items-start">
+                  {form.logo_url && (
+                    <div className="h-16 w-16 border rounded bg-gray-50 flex items-center justify-center p-1 shrink-0">
+                       <img src={form.logo_url} alt="Preview" className="max-h-full max-w-full object-contain" />
+                    </div>
+                  )}
+                  <div className="w-full space-y-2">
+                    <Input 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={handleFileUpload}
+                      className="cursor-pointer"
+                    />
+                     <div className="text-xs text-center text-gray-400 font-medium tracking-wider uppercase">OR</div>
+                    <Input 
+                      value={form.logo_url} 
+                      onChange={(e) => setForm((f) => ({ ...f, logo_url: e.target.value }))} 
+                      placeholder="Paste logo URL..." 
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="website">Website URL</Label>
+                <Input id="website" value={form.website_url} onChange={(e) => setForm((f) => ({ ...f, website_url: e.target.value }))} placeholder="https://..." />
+              </div>
+              
+               <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="order">Display Order</Label>
+                    <Input id="order" type="number" value={form.order_index} onChange={(e) => setForm((f) => ({ ...f, order_index: parseInt(e.target.value) || 0 }))} />
+                  </div>
+                   <div className="flex items-end pb-2">
+                     <div className="flex items-center space-x-2">
+                      <Switch id="visible" checked={form.visible} onCheckedChange={(v) => setForm((f) => ({ ...f, visible: v }))} />
+                      <Label htmlFor="visible">Visible on site</Label>
+                    </div>
+                  </div>
+               </div>
+            </div>
+            
+            <Button onClick={() => save.mutate()} disabled={save.isPending} className="w-full bg-primary text-white">
+              {save.isPending ? "Saving..." : "Save Partner"}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
     </div>
   );
 }
+

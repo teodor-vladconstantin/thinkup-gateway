@@ -42,21 +42,37 @@ export default function AdminSettings() {
   });
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Settings</h1>
-      <div className="bg-white rounded-xl shadow-sm border overflow-auto mb-8">
+    <div className="max-w-6xl mx-auto p-6">
+      <div className="mb-8">
+         <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Settings</h1>
+         <p className="text-gray-500 mt-1">Manage platform administrators and roles.</p>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
         <Table>
-          <TableHeader><TableRow><TableHead>Email</TableHead><TableHead>Name</TableHead><TableHead>Role</TableHead><TableHead>Actions</TableHead></TableRow></TableHeader>
+          <TableHeader className="bg-gray-50/50">
+            <TableRow>
+              <TableHead>User</TableHead>
+              <TableHead>Current Role</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
           <TableBody>
             {profiles?.map((p) => (
-              <TableRow key={p.id}>
-                <TableCell>{p.email}</TableCell>
-                <TableCell>{p.full_name}</TableCell>
+              <TableRow key={p.id} className="hover:bg-gray-50/50 transition-colors">
                 <TableCell>
-                  <Select value={getRoleFor(p.user_id)} onValueChange={(v) => updateRole.mutate({ userId: p.user_id, newRole: v })}>
-                    <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+                  <div className="flex flex-col">
+                    <span className="font-semibold text-gray-900">{p.full_name || "Unknown Name"}</span>
+                    <span className="text-xs text-gray-500">{p.email}</span>
+                  </div>
+                </TableCell>
+                <TableCell>
+                   <Select value={getRoleFor(p.user_id)} onValueChange={(v) => updateRole.mutate({ userId: p.user_id, newRole: v })}>
+                    <SelectTrigger className="w-[180px] h-8 bg-white border-gray-200">
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">None</SelectItem>
+                      <SelectItem value="none">No Role</SelectItem>
                       <SelectItem value="super_admin">Super Admin</SelectItem>
                       <SelectItem value="director">Director</SelectItem>
                       <SelectItem value="ceo">CEO</SelectItem>
@@ -66,14 +82,28 @@ export default function AdminSettings() {
                   </Select>
                 </TableCell>
                 <TableCell>
-                  <Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-red-500" /></Button>
+                   <div className="flex justify-end">
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-400 hover:text-red-500 hover:bg-red-50">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                   </div>
                 </TableCell>
               </TableRow>
             ))}
+             {profiles?.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={3} className="h-32 text-center text-gray-500">
+                  No users found.
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </div>
-      <p className="text-sm text-gray-500">To invite a new admin, create their account and assign them a role above.</p>
+      
+      <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 text-sm text-blue-700">
+        Tip: To invite a new admin, they must first create an account on the public site. Once they are registered, they will appear in this list, and you can assign them a role.
+      </div>
     </div>
   );
 }

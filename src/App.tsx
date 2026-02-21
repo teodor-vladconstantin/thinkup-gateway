@@ -32,6 +32,8 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          <Route path="/admin/login" element={<AdminLogin />} />
+
           {/* Public */}
           <Route element={<PublicLayout />}>
             <Route path="/" element={<Index />} />
@@ -43,7 +45,6 @@ const App = () => (
           </Route>
 
           {/* Admin */}
-          <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin" element={<AdminLayout />}>
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="members" element={<AdminMembers />} />
