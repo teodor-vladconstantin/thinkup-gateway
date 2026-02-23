@@ -6,55 +6,56 @@
 
 @layer base {
   :root {
-    --background: 270 38% 17%;
+    /* Deep Purple Background #1A0B2E */
+    --background: 266 61% 11%;
+    /* White Text on Background */
     --foreground: 0 0% 100%;
 
+    /* Clean White Cards */
     --card: 0 0% 100%;
-    --card-foreground: 270 38% 17%;
+    /* Dark Text on Cards */
+    --card-foreground: 222 47% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 270 38% 17%;
+    --popover-foreground: 222 47% 11%;
 
-    --primary: 263 91% 76%;
+    /* Lavender / Purple Primary */
+    --primary: 262 83% 58%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 268 35% 62%;
+    --secondary: 266 30% 20%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 268 20% 30%;
-    --muted-foreground: 263 60% 85%;
+    --muted: 266 30% 20%;
+    --muted-foreground: 270 10% 70%;
 
-    --accent: 263 91% 76%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 270 50% 90%; /* Lavender-ish */
+    --accent-foreground: 266 61% 11%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 268 20% 35%;
-    --input: 268 20% 35%;
-    --ring: 263 91% 76%;
+    --border: 266 30% 20%;
+    --input: 266 30% 20%;
+    --ring: 262 83% 58%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 240 33% 14%;
-    --sidebar-foreground: 0 0% 90%;
-    --sidebar-primary: 263 91% 76%;
+    /* Sidebar colors tailored for admin if needed, but keeping consistent */
+    --sidebar-background: 266 61% 11%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 262 83% 58%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 20% 20%;
-    --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 240 20% 22%;
-    --sidebar-ring: 263 91% 76%;
+    --sidebar-accent: 266 30% 20%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 266 30% 20%;
+    --sidebar-ring: 262 83% 58%;
 
     --highlight: 240 100% 62%;
 
     --font-heading: 'Montserrat', sans-serif;
     --font-accent: 'Playfair Display', serif;
     --font-body: 'Inter', sans-serif;
-  }
-
-  .dark {
-    --background: 270 38% 17%;
-    --foreground: 0 0% 100%;
   }
 }
 
@@ -74,6 +75,6 @@
 
   /* Utility class for consistent cards */
   .card-base {
-    @apply bg-card rounded-xl shadow-sm border border-border;
+    @apply bg-card text-card-foreground rounded-xl shadow-sm border border-border;
   }
 }

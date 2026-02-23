@@ -4,12 +4,17 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import PublicLayout from "./components/PublicLayout";
+import ScrollToTop from "./components/ScrollToTop";
 import Index from "./pages/Index";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import Departments from "./pages/Departments";
 import JoinUs from "./pages/JoinUs";
 import Contact from "./pages/Contact";
+import Contribute from "./pages/Contribute";
+import Partners from "./pages/Partners";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -31,6 +36,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <ScrollToTop />
         <Routes>
           <Route path="/admin/login" element={<AdminLogin />} />
 
@@ -41,7 +47,11 @@ const App = () => (
             <Route path="/blog/:slug" element={<BlogPost />} />
             <Route path="/departments" element={<Departments />} />
             <Route path="/join-us" element={<JoinUs />} />
+            <Route path="/contribute" element={<Contribute />} />
+            <Route path="/partners" element={<Partners />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
           </Route>
 
           {/* Admin */}

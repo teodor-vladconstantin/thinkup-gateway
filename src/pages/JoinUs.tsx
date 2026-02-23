@@ -1,67 +1,249 @@
+
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Loader2, Send } from "lucide-react";
 
 export default function JoinUs() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [accepted, setAccepted] = useState(false);
-  const [form, setForm] = useState({ first_name: "", last_name: "", email: "", dob: "", phone: "", reason: "", source: "", school: "" });
+  const [formData, setFormData] = useState({
+    first_name: "",
+    last_name: "",
+    email: "",
+    dob: "",
+    phone: "",
+    reason: "",
+    source: "",
+    school: "",
+  });
 
-  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) => setForm((f) => ({ ...f, [k]: e.target.value }));
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
 
-  const submit = async (e: React.FormEvent) => {
+  const handleSelectChange = (value: string, name: string) => {
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!accepted) { toast({ title: "Please accept the privacy policy", variant: "destructive" }); return; }
     setLoading(true);
-    const { error } = await supabase.from("applications").insert([form]);
+
+    const applicationData = {
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        email: formData.email,
+        dob: formData.dob || null,
+        phone: formData.phone,
+        reason: formData.reason,
+        source: formData.source,
+        school: formData.school
+    };
+
+    const { error } = await supabase.from("applications").insert([applicationData]);
+    
     setLoading(false);
-    if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
-    toast({ title: "Application submitted!", description: "We'll be in touch soon." });
-    setForm({ first_name: "", last_name: "", email: "", dob: "", phone: "", reason: "", source: "", school: "" });
-    setAccepted(false);
+    
+    if (error) {
+      toast({
+        title: "Submission Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    toast({
+      title: "Application Submitted!",
+      description: "Welcome to the future. We will be in touch soon.",
+    });
+    
+    setFormData({
+      first_name: "",
+      last_name: "",
+      email: "",
+      dob: "",
+      phone: "",
+      reason: "",
+      source: "",
+      school: "",
+    });
   };
 
   return (
-    <section className="py-16 px-4">
-      <div className="max-w-lg mx-auto bg-card rounded-2xl p-8 shadow-lg">
-        <h1 className="text-3xl font-extrabold text-card-foreground mb-6 text-center">Join Us</h1>
-        <form onSubmit={submit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div><Label className="text-card-foreground">First name</Label><Input value={form.first_name} onChange={set("first_name")} required /></div>
-            <div><Label className="text-card-foreground">Last name</Label><Input value={form.last_name} onChange={set("last_name")} required /></div>
-          </div>
-          <div><Label className="text-card-foreground">Email</Label><Input type="email" value={form.email} onChange={set("email")} required /></div>
-          <div><Label className="text-card-foreground">Date of Birth</Label><Input type="date" value={form.dob} onChange={set("dob")} /></div>
-          <div><Label className="text-card-foreground">Phone Number</Label><Input value={form.phone} onChange={set("phone")} /></div>
-          <div>
-            <Label className="text-card-foreground">Why do you wish to sign up?</Label>
-            <Select value={form.reason} onValueChange={(v) => setForm((f) => ({ ...f, reason: v }))}>
-              <SelectTrigger><SelectValue placeholder="Select a reason" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Why not">Why not</SelectItem>
-                <SelectItem value="I want to">I want to</SelectItem>
-                <SelectItem value="Don't wanna tell u">Don't wanna tell u</SelectItem>
-                <SelectItem value="Other">Other</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div><Label className="text-card-foreground">How did you find out about us?</Label><Input value={form.source} onChange={set("source")} /></div>
-          <div><Label className="text-card-foreground">Your school's name</Label><Input value={form.school} onChange={set("school")} /></div>
-          <div className="flex items-center gap-2">
-            <Checkbox checked={accepted} onCheckedChange={(v) => setAccepted(v === true)} id="privacy" />
-            <label htmlFor="privacy" className="text-sm text-card-foreground">By continuing, you accept the privacy policy</label>
-          </div>
-          <Button type="submit" disabled={loading} className="w-full bg-primary text-primary-foreground rounded-full hover:opacity-90">
-            {loading ? "Submitting..." : "Submit Application"}
-          </Button>
-        </form>
+    <div className="min-h-screen bg-[#1a0b2e] flex flex-col justify-center items-center py-24 px-4 font-sans">
+      <div className="w-full max-w-3xl space-y-8">
+        
+        <div className="text-center space-y-4">
+          <h1 className="text-4xl md:text-5xl font-bold text-white tracking-tight">
+             Join the <span className="font-serif italic text-purple-300">Academy</span>
+          </h1>
+          <p className="text-purple-100/70 text-lg">
+            Start your journey with ThinkUp today.
+          </p>
+        </div>
+
+        <Card className="border-0 shadow-2xl bg-white rounded-2xl overflow-hidden">
+          <CardHeader className="bg-purple-50 p-8 border-b border-purple-100 text-center">
+            <CardTitle className="text-2xl font-bold text-purple-900">Application Form</CardTitle>
+            <CardDescription className="text-purple-700/60">
+              Please check your details before submitting.
+            </CardDescription>
+          </CardHeader>
+          
+          <CardContent className="p-8 md:p-10">
+            <form onSubmit={handleSubmit} className="space-y-8">
+              
+              {/* Personal Info Group */}
+              <div className="space-y-6">
+                <h3 className="text-sm font-bold uppercase tracking-widest text-purple-900/40 border-b border-purple-100 pb-2">Personal Details</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="first_name" className="text-gray-700">First Name</Label>
+                    <Input
+                      id="first_name"
+                      name="first_name"
+                      placeholder="Jane"
+                      value={formData.first_name}
+                      onChange={handleChange}
+                      required
+                      className="bg-gray-50 border-gray-200 focus:border-purple-500 focus:ring-purple-500/20"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="last_name" className="text-gray-700">Last Name</Label>
+                    <Input
+                      id="last_name"
+                      name="last_name"
+                      placeholder="Doe"
+                      value={formData.last_name}
+                      onChange={handleChange}
+                      required
+                      className="bg-gray-50 border-gray-200 focus:border-purple-500 focus:ring-purple-500/20"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-gray-700">Email Address</Label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="jane.doe@example.com"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    className="bg-gray-50 border-gray-200 focus:border-purple-500 focus:ring-purple-500/20"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="dob" className="text-gray-700">Date of Birth</Label>
+                    <Input
+                      id="dob"
+                      name="dob"
+                      type="date"
+                      value={formData.dob}
+                      onChange={handleChange}
+                      className="bg-gray-50 border-gray-200 focus:border-purple-500 focus:ring-purple-500/20"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone" className="text-gray-700">Phone Number</Label>
+                    <Input
+                      id="phone"
+                      name="phone"
+                      placeholder="+1 (555) 000-0000"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      className="bg-gray-50 border-gray-200 focus:border-purple-500 focus:ring-purple-500/20"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Education Group */}
+              <div className="space-y-6 pt-4">
+                 <h3 className="text-sm font-bold uppercase tracking-widest text-purple-900/40 border-b border-purple-100 pb-2">Background</h3>
+                 
+                 <div className="space-y-2">
+                  <Label htmlFor="school" className="text-gray-700">Current School / Institution</Label>
+                  <Input
+                    id="school"
+                    name="school"
+                    placeholder="University of Innovation"
+                    value={formData.school}
+                    onChange={handleChange}
+                    className="bg-gray-50 border-gray-200 focus:border-purple-500 focus:ring-purple-500/20"
+                  />
+                 </div>
+
+                 <div className="space-y-2">
+                   <Label htmlFor="reason" className="text-gray-700">Why do you want to join?</Label>
+                   <Select onValueChange={(val) => handleSelectChange(val, 'reason')}>
+                      <SelectTrigger className="bg-gray-50 border-gray-200 focus:border-purple-500 focus:ring-purple-500/20">
+                        <SelectValue placeholder="Select a reason" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="learn">To Learn & Grow</SelectItem>
+                        <SelectItem value="contribute">To Contribute</SelectItem>
+                        <SelectItem value="network">To Network</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                 </div>
+                  
+                  <div className="space-y-2">
+                   <Label htmlFor="source" className="text-gray-700">How did you hear about us?</Label>
+                   <Select onValueChange={(val) => handleSelectChange(val, 'source')}>
+                      <SelectTrigger className="bg-gray-50 border-gray-200 focus:border-purple-500 focus:ring-purple-500/20">
+                        <SelectValue placeholder="Select a source" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="social">Social Media</SelectItem>
+                        <SelectItem value="friend">Friend / Colleague</SelectItem>
+                        <SelectItem value="event">Event</SelectItem>
+                        <SelectItem value="search">Search Engine</SelectItem>
+                      </SelectContent>
+                    </Select>
+                 </div>
+              </div>
+
+              <div className="pt-6">
+                <Button 
+                  type="submit" 
+                  disabled={loading}
+                  className="w-full bg-[#1a0b2e] hover:bg-[#2d1b4e] text-white font-semibold py-6 text-lg transition-all duration-300 shadow-xl"
+                >
+                  {loading ? (
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" /> Submitting...
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      Submit Application <Send className="h-4 w-4" />
+                    </span>
+                  )}
+                </Button>
+                <p className="text-center text-xs text-gray-400 mt-4">
+                  By clicking Submit, you agree to our Terms and Privacy Policy.
+                </p>
+              </div>
+
+            </form>
+          </CardContent>
+        </Card>
       </div>
-    </section>
+    </div>
   );
 }
+
