@@ -102,7 +102,7 @@ export default function Partners() {
         <div className="pt-12 border-t border-white/10 w-full max-w-md mx-auto">
           <p className="text-purple-200/50 text-sm mb-6 uppercase tracking-widest">Interested in partnering?</p>
            <Link to="/contact">
-            <button className="px-8 py-4 bg-white text-[#1a0b2e] rounded-full font-bold hover:bg-purple-50 transition-all shadow-lg hover:shadow-purple-500/20 hover:-translate-y-1">
+            <button className="px-8 py-4 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-full font-bold hover:from-purple-600 hover:to-purple-700 transition-all shadow-lg hover:shadow-purple-500/30 hover:-translate-y-1">
               Become a Partner
             </button>
           </Link>
