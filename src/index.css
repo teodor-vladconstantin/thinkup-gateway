@@ -53,9 +53,9 @@
 
     --highlight: 240 100% 62%;
 
-    --font-heading: 'Montserrat', sans-serif;
-    --font-accent: 'Playfair Display', serif;
-    --font-body: 'Inter', sans-serif;
+    --font-heading: sans-serif;
+    --font-accent: sans-serif;
+    --font-body: sans-serif;
   }
 }
 

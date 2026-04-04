@@ -39,13 +39,13 @@ export default function Index() {
 
             <div className="flex flex-col sm:flex-row gap-4 pt-6">
               <Link to="/join-us">
-                <Button size="lg" className="bg-white text-[#1A0B2E] hover:bg-purple-50 px-8 text-lg h-14 font-semibold rounded-full shadow-[0_0_20px_rgba(255,255,255,0.2)] transition-all hover:scale-105">
+                <Button size="lg" className="bg-white text-[#1A0B2E] hover:bg-purple-50 px-5 text-sm h-10 font-semibold rounded-lg shadow-[0_0_20px_rgba(255,255,255,0.2)] transition-all hover:scale-105">
                   Join Us
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
               <Link to="/contact">
-                <Button variant="outline" size="lg" className="border-white/20 text-white hover:bg-white/10 px-8 text-lg h-14 rounded-full backdrop-blur-sm">
+                <Button variant="outline" size="lg" className="border-white/20 text-white hover:bg-white/10 px-5 text-lg h-10 rounded-lg backdrop-blur-sm">
                   Contact Us
                 </Button>
               </Link>
@@ -172,12 +172,12 @@ export default function Index() {
              </p>
              <div className="pt-8 flex flex-col sm:flex-row gap-6 justify-center">
                 <Link to="/join-us">
-                  <Button className="bg-white text-[#1A0B2E] hover:bg-purple-50 px-10 py-8 text-xl h-auto font-bold rounded-full shadow-lg hover:shadow-purple-500/20 transition-all hover:-translate-y-1">
+                  <Button className="bg-white text-[#1A0B2E] hover:bg-purple-50 px-5 py-2 text-sm h-auto font-bold rounded-lg shadow-lg hover:shadow-purple-500/20 transition-all hover:-translate-y-1">
                     Apply Now
                   </Button>
                 </Link>
                 <Link to="/contact">
-                   <Button variant="outline" className="border-purple-500/30 text-purple-100 hover:bg-white/10 px-10 py-8 text-xl h-auto rounded-full backdrop-blur-sm transition-all hover:-translate-y-1">
+                   <Button variant="outline" className="border-purple-500/30 text-purple-100 hover:bg-white/10 px-5 py-2 text-sm h-auto rounded-lg backdrop-blur-sm transition-all hover:-translate-y-1">
                     Talk to Us
                   </Button>
                 </Link>
