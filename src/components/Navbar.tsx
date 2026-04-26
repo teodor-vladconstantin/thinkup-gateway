@@ -102,62 +102,62 @@ export default function Navbar() {
             className="md:hidden relative p-3 text-white transition-all duration-300 hover:text-purple-300 hover:bg-purple-500/20 rounded-xl hover:scale-110 shadow-lg hover:shadow-purple-500/25 border border-white/10 hover:border-purple-500/30"
             onClick={() => setOpen(!open)}
           >
-            <div className="relative">
+            <span className="relative block">
               <Menu className={cn("h-6 w-6 absolute inset-0 transition-all duration-300", open ? "opacity-0 rotate-180 scale-75" : "opacity-100 rotate-0 scale-100")} />
               <X className={cn("h-6 w-6 absolute inset-0 transition-all duration-300", open ? "opacity-100 rotate-0 scale-100" : "opacity-0 -rotate-180 scale-75")} />
-            </div>
+            </span>
           </button>
         </div>
-
-        {/* Mobile Menu */}
-        {open && (
-          <>
-            <div className="md:hidden fixed inset-0 z-40 bg-black/40" onClick={() => setOpen(false)} />
-            <div className="md:hidden fixed inset-0 z-50 bg-[#1a0b2e] overflow-y-auto p-4"> 
-              <div className="mb-4 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <img src="/logos/logo-dark.png" alt="ThinkUp Logo" className="h-8" />
-                  <span className="text-white font-bold">ThinkUp</span>
-                </div>
-                <button onClick={() => setOpen(false)} className="p-2 rounded-lg bg-white/10 text-white hover:bg-white/20">
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-
-              <div className="space-y-2">
-                {[...leftLinks, ...rightLinks].map((l) => (
-                  <Link
-                    key={l.to}
-                    to={l.to}
-                    onClick={() => setOpen(false)}
-                    className={cn(
-                      "block px-4 py-3 rounded-lg transition-all duration-200",
-                      l.label === "Partners"
-                        ? "bg-purple-600 text-white"
-                        : "text-white bg-white/5 hover:bg-purple-500/20"
-                    )}
-                  >
-                    {l.label}
-                  </Link>
-                ))}
-              </div>
-
-              <div className="mt-6 border-t border-white/10 pt-4 text-center text-xs text-white/60">
-                Empowering the next generation of innovators
-              </div>
-            </div>
-          </>
-        )}
       </nav>
 
       {/* Floating hamburger button - mobile only, appears on scroll */}
       {scrolled && !open && (
         <button
-          className="md:hidden fixed bottom-6 right-6 z-50 p-4 bg-purple-600 text-white rounded-full shadow-lg shadow-purple-500/40 hover:bg-purple-700 transition-all duration-300"
+          className="md:hidden fixed bottom-6 right-6 z-50 p-3 bg-purple-600 text-white rounded-full shadow-[0_0_15px_rgba(168,85,247,0.3)] hover:bg-purple-700 hover:shadow-[0_0_20px_rgba(168,85,247,0.5)] transition-all duration-300"
           onClick={() => setOpen(true)}
         >
           <Menu className="h-6 w-6" />
         </button>
+      )}
+
+      {/* Mobile Menu - OUTSIDE nav */}
+      {open && (
+        <>
+          <div className="md:hidden fixed inset-0 z-40 bg-black/40" onClick={() => setOpen(false)} />
+          <div className="md:hidden fixed inset-0 z-50 bg-[#1a0b2e] overflow-y-auto overflow-x-hidden p-4 no-scrollbar">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <img src="/logos/logo-dark.png" alt="ThinkUp Logo" className="h-8 max-w-full" />
+                <span className="text-white font-bold">ThinkUp</span>
+              </div>
+              <button onClick={() => setOpen(false)} className="p-2 rounded-lg bg-white/10 text-white hover:bg-white/20">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              {[...leftLinks, ...rightLinks].map((l) => (
+                <Link
+                  key={l.to}
+                  to={l.to}
+                  onClick={() => setOpen(false)}
+                  className={cn(
+                    "block px-4 py-3 rounded-lg transition-all duration-200",
+                    l.label === "Partners"
+                      ? "bg-purple-600 text-white"
+                      : "text-white bg-white/5 hover:bg-purple-500/20"
+                  )}
+                >
+                  {l.label}
+                </Link>
+              ))}
+            </div>
+
+            <div className="mt-6 border-t border-white/10 pt-4 text-center text-xs text-white/60">
+              Empowering the next generation of innovators
+            </div>
+          </div>
+        </>
       )}
     </>
   );
