@@ -73,7 +73,7 @@ export default function Index() {
                 <CardTitle className="text-3xl font-bold text-slate-900 font-serif italic">Create</CardTitle>
               </CardHeader>
               <CardContent className="px-8 pb-8 text-slate-600 size-lg leading-relaxed">
-                <p>Brainstorm, ideate, and shape your initial concepts into viable project proposals with our expert guidance.</p>
+                <p>Ideas are not just imagined, they are forged into direction, clarity, and purpose. Through guided thinking and creative refinement, raw concepts become original initiatives capable of reshaping the spaces they are meant to serve.</p>
               </CardContent>
             </Card>
 
@@ -86,7 +86,7 @@ export default function Index() {
                 <CardTitle className="text-3xl font-bold text-slate-900 font-serif italic">Implement</CardTitle>
               </CardHeader>
               <CardContent className="px-8 pb-8 text-slate-600 size-lg leading-relaxed">
-                <p>Put plans into action. We provide technical resources, management strategies, and development support.</p>
+                <p>Plans stop being potential and start becoming presence. With structure, strategy, and consistent support, every concept is transformed into action-driven projects that produce visible, meaningful changes in real communities.</p>
               </CardContent>
             </Card>
 
@@ -99,7 +99,7 @@ export default function Index() {
                 <CardTitle className="text-3xl font-bold text-slate-900 font-serif italic">Express</CardTitle>
               </CardHeader>
               <CardContent className="px-8 pb-8 text-slate-600 size-lg leading-relaxed">
-                <p>Share your success. Learn to present your project effectively and connect with our wider community.</p>
+                <p>Impact does not stay hidden. It is communicated, amplified, and made unforgettable. Every project becomes a story told with confidence, designed to inspire, connect, and leave a lasting mark far beyond its execution.</p>
               </CardContent>
             </Card>
           </div>
@@ -141,7 +141,10 @@ export default function Index() {
                 <div className="relative z-10 space-y-6">
                   <h3 className="text-2xl font-bold text-slate-900">Why Join?</h3>
                   <p className="text-slate-600 leading-relaxed text-lg">
-                    We believe in the power of youth-led innovation. Whether you have a fully formed idea or just a spark of curiosity, ThinkUp Academy is the place to grow.
+                    Every project begins as a question, a quiet “what if?” that refuses to be ignored. At ThinkUp Academy, we turn that spark into action, helping you grow, build, and create with purpose. Whether you’re just starting out or already shaping something bold, this is where your initiative comes to life.
+                  </p>
+                  <p className="text-slate-600 leading-relaxed text-lg">
+                    Through our student ambassadors, innovation goes beyond the platform: they bring energy into their schools by launching challenges, inspiring others, and turning ideas into movement.
                   </p>
                   <Link to="/join-us">
                     <Button variant="link" className="p-0 h-auto text-purple-600 font-semibold text-lg hover:text-purple-800">
