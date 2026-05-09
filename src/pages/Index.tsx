@@ -115,17 +115,21 @@ export default function Index() {
                 Our Mission
               </div>
               <h2 className="text-4xl md:text-5xl font-bold text-slate-900 tracking-tight leading-tight">
-                Empowering the Next Generation of <span className="font-serif italic text-purple-600">Innovators</span>
+                Empowering the Next Generation of Leaders
               </h2>
               <p className="text-lg text-slate-600 leading-relaxed">
-                ThinkUp Academy is dedicated to guiding teens to develop entrepreneurial projects. 
-                We provide the platform and resources necessary for young minds to innovate and lead.
+                ThinkUp Academy is a platform for initiative, vision, and change. We empower teenagers to design and lead meaningful activities that bring non-formal education into the heart of their communities. By combining guidance, resources, and real opportunities, we help young people step into leadership with confidence and purpose.
+              </p>
+              <p className="text-lg text-slate-600 leading-relaxed mt-4">
+                Through our challenges, high school students don’t just participate – they take ownership. They learn to think critically, act independently, and transform ideas into tangible impact, discovering not only what they can do, but who they can become.
               </p>
               <ul className="space-y-4 pt-4">
                 {[
-                  "Expert mentoring sessions to refine your vision",
-                  "Networking with like-minded peers and professionals",
-                  "Real-world project implementation support"
+                  "Promoting non-formal education among high school students",
+                  "Developing essential skills, with a focus on leadership, critical thinking, autonomy, creativity and active citizenship",
+                  "Creating real impact within local communities",
+                  "Building strong networks with like-minded peers and professionals",
+                  "Supporting the implementation of real-world projects"
                 ].map((item, i) => (
                   <li key={i} className="flex items-start gap-4">
                     <div className="bg-purple-100 rounded-full p-1 mt-1">

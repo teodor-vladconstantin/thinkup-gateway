@@ -154,7 +154,7 @@ export default function Navbar() {
             </div>
 
             <div className="mt-6 border-t border-white/10 pt-4 text-center text-xs text-white/60">
-              Empowering the next generation of innovators
+              Empowering the Next Generation of Leaders
             </div>
           </div>
         </>

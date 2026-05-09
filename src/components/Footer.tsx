@@ -16,7 +16,7 @@ export default function Footer() {
               </h2>
             </Link>
             <p className="text-purple-200/60 text-sm leading-relaxed max-w-xs">
-              Empowering the next generation of innovators to turn good ideas into reality.
+              Empowering the Next Generation of Leaders to turn good ideas into reality.
             </p>
           </div>
 
