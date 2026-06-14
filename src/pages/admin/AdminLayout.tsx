@@ -3,20 +3,21 @@ import { Outlet, useNavigate, Link, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { LayoutDashboard, Users, Building2, FileText, Handshake, Inbox, MessageSquare, Settings, LogOut, Menu, X } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
+import { canAccessBlog, canAccessFullAdmin, getAdminHomeRoute } from "./access";
 
 type AdminCtx = { user: User; role: string | null; profile: any };
 const AdminContext = createContext<AdminCtx | null>(null);
 export const useAdmin = () => useContext(AdminContext)!;
 
 const navItems = [
-  { label: "Dashboard", to: "/admin/dashboard", icon: LayoutDashboard },
-  { label: "Members", to: "/admin/members", icon: Users },
-  { label: "Departments", to: "/admin/departments", icon: Building2 },
-  { label: "Blog", to: "/admin/blog", icon: FileText },
-  { label: "Partners", to: "/admin/partners", icon: Handshake },
-  { label: "Applications", to: "/admin/applications", icon: Inbox },
-  { label: "Messages", to: "/admin/messages", icon: MessageSquare },
-  { label: "Settings", to: "/admin/settings", icon: Settings, superOnly: true },
+  { label: "Dashboard", to: "/admin/dashboard", icon: LayoutDashboard, access: "full_admin" },
+  { label: "Members", to: "/admin/members", icon: Users, access: "full_admin" },
+  { label: "Departments", to: "/admin/departments", icon: Building2, access: "full_admin" },
+  { label: "Blog", to: "/admin/blog", icon: FileText, access: "blog" },
+  { label: "Partners", to: "/admin/partners", icon: Handshake, access: "full_admin" },
+  { label: "Applications", to: "/admin/applications", icon: Inbox, access: "full_admin" },
+  { label: "Messages", to: "/admin/messages", icon: MessageSquare, access: "full_admin" },
+  { label: "Settings", to: "/admin/settings", icon: Settings, access: "super_admin" },
 ];
 
 export default function AdminLayout() {
@@ -47,8 +48,8 @@ export default function AdminLayout() {
 
         const userRole = roles?.[0]?.role ?? null;
         
-        // If not admin/super_admin, kick out
-        if (!userRole || (userRole !== "admin" && userRole !== "super_admin")) {
+        // If not a full admin or blog editor, kick out
+        if (!userRole || (!canAccessFullAdmin(userRole) && userRole !== "blog_editor")) {
           await supabase.auth.signOut();
           navigate("/admin/login");
           return;
@@ -85,6 +86,22 @@ export default function AdminLayout() {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  useEffect(() => {
+    if (loading || !role) return;
+
+    if (role === "blog_editor") {
+      const isBlogRoute = /^\/admin\/blog(\/|$)/.test(location.pathname);
+      if (!isBlogRoute) {
+        navigate("/admin/blog", { replace: true });
+      }
+      return;
+    }
+
+    if (location.pathname === "/admin") {
+      navigate(getHomeRoute(role), { replace: true });
+    }
+  }, [loading, location.pathname, navigate, role]);
 
   const logout = async () => { await supabase.auth.signOut(); navigate("/admin/login"); };
 
@@ -127,7 +144,9 @@ export default function AdminLayout() {
           </div>
           <nav className="p-3 space-y-1">
             {navItems.map((item) => {
-              if (item.superOnly && role !== "super_admin") return null;
+              if (item.access === "super_admin" && role !== "super_admin") return null;
+              if (item.access === "full_admin" && !canAccessFullAdmin(role)) return null;
+              if (item.access === "blog" && !canAccessBlog(role)) return null;
               const active = location.pathname === item.to;
               return (
                 <Link key={item.to} to={item.to} onClick={() => setSidebarOpen(false)}

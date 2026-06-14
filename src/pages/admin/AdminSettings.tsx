@@ -77,6 +77,7 @@ export default function AdminSettings() {
                       <SelectItem value="director">Director</SelectItem>
                       <SelectItem value="ceo">CEO</SelectItem>
                       <SelectItem value="vicepresident">Vice President</SelectItem>
+                      <SelectItem value="blog_editor">Blog Editor</SelectItem>
                       <SelectItem value="mentor">Mentor</SelectItem>
                     </SelectContent>
                   </Select>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Brain } from "lucide-react";
+import { getAdminHomeRoute } from "./access";
 
 export default function AdminLogin() {
   const navigate = useNavigate();
@@ -14,16 +15,59 @@ export default function AdminLogin() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    const redirectIfSignedIn = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const { data: roles } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", session.user.id);
+
+      const role = roles?.[0]?.role ?? null;
+      if (role) {
+        navigate(getAdminHomeRoute(role), { replace: true });
+      }
+    };
+
+    redirectIfSignedIn();
+  }, [navigate]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
       toast({ title: "Login failed", description: error.message, variant: "destructive" });
       return;
     }
-    navigate("/admin/dashboard");
+
+    const userId = data.user?.id ?? data.session?.user.id;
+    if (!userId) {
+      toast({ title: "Login failed", description: "Could not resolve your session.", variant: "destructive" });
+      return;
+    }
+
+    const { data: roles, error: roleError } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId);
+
+    if (roleError) {
+      toast({ title: "Login failed", description: roleError.message, variant: "destructive" });
+      return;
+    }
+
+    const role = roles?.[0]?.role ?? null;
+    if (!role) {
+      await supabase.auth.signOut();
+      toast({ title: "Access denied", description: "No admin role was assigned to this account.", variant: "destructive" });
+      return;
+    }
+
+    navigate(getAdminHomeRoute(role), { replace: true });
   };
 
   return (
