@@ -3,7 +3,7 @@ import { Outlet, useNavigate, Link, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { LayoutDashboard, Users, Building2, FileText, Handshake, Inbox, MessageSquare, Settings, LogOut, Menu, X } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
-import { canAccessBlog, canAccessFullAdmin, getAdminHomeRoute } from "./access";
+import { canAccessBlog, canAccessFullAdmin, canAccessSettings, getAdminHomeRoute } from "./access";
 
 type AdminCtx = { user: User; role: string | null; profile: any };
 const AdminContext = createContext<AdminCtx | null>(null);
@@ -90,6 +90,11 @@ export default function AdminLayout() {
   useEffect(() => {
     if (loading || !role) return;
 
+    if (role === "director" && location.pathname.startsWith("/admin/settings")) {
+      navigate("/admin/dashboard", { replace: true });
+      return;
+    }
+
     if (role === "blog_editor") {
       const isBlogRoute = /^\/admin\/blog(\/|$)/.test(location.pathname);
       if (!isBlogRoute) {
@@ -144,7 +149,7 @@ export default function AdminLayout() {
           </div>
           <nav className="p-3 space-y-1">
             {navItems.map((item) => {
-              if (item.access === "super_admin" && role !== "super_admin") return null;
+              if (item.access === "super_admin" && !canAccessSettings(role)) return null;
               if (item.access === "full_admin" && !canAccessFullAdmin(role)) return null;
               if (item.access === "blog" && !canAccessBlog(role)) return null;
               const active = location.pathname === item.to;

@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { useAdmin } from "./AdminLayout";
-import { Trash2 } from "lucide-react";
+import { canAccessSettings } from "./access";
+import { Trash2, Plus, X } from "lucide-react";
 
 export default function AdminSettings() {
   const { role } = useAdmin();
@@ -17,7 +18,14 @@ export default function AdminSettings() {
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<string>("director");
 
-  if (role !== "super_admin") return <p className="text-gray-500">Access denied.</p>;
+  // Create user form state
+  const [createOpen, setCreateOpen] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [newName, setNewName] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [newRole, setNewRole] = useState<string>("director");
+
+  if (!canAccessSettings(role)) return <p className="text-gray-500">Access denied.</p>;
 
   const { data: profiles } = useQuery({
     queryKey: ["admin-profiles"],
@@ -41,13 +49,132 @@ export default function AdminSettings() {
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-user-roles"] }); toast({ title: "Role updated" }); },
   });
 
+  const createUser = useMutation({
+    mutationFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error("No active session");
+
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const res = await fetch(`${supabaseUrl}/functions/v1/create-user`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          email: newEmail,
+          full_name: newName,
+          password: newPassword,
+          role: newRole,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to create user");
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-user-roles"] });
+      qc.invalidateQueries({ queryKey: ["admin-profiles"] });
+      qc.invalidateQueries({ queryKey: ["admin-role-counts"] });
+      toast({ title: "User created", description: `${newName} (${newEmail}) has been added.` });
+      setNewEmail("");
+      setNewName("");
+      setNewPassword("");
+      setNewRole("director");
+      setCreateOpen(false);
+    },
+    onError: (err: Error) => {
+      toast({ title: "Failed to create user", description: err.message, variant: "destructive" });
+    },
+  });
+
   return (
     <div className="max-w-6xl mx-auto p-6">
       <div className="mb-8">
-         <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Settings</h1>
-         <p className="text-gray-500 mt-1">Manage platform administrators and roles.</p>
+        <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Settings</h1>
+        <p className="text-gray-500 mt-1">Manage platform administrators and roles.</p>
       </div>
 
+      {/* Create User Section */}
+      <div className="mb-6">
+        {!createOpen ? (
+          <Button onClick={() => setCreateOpen(true)} className="bg-[hsl(263,91%,76%)] text-white hover:opacity-90">
+            <Plus className="h-4 w-4 mr-2" /> Create New User
+          </Button>
+        ) : (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">Create New User</h2>
+              <Button variant="ghost" size="sm" onClick={() => setCreateOpen(false)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label className="text-gray-700">Email</Label>
+                <Input
+                  type="email"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                  placeholder="user@example.com"
+                  required
+                />
+              </div>
+              <div>
+                <Label className="text-gray-700">Full Name</Label>
+                <Input
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  placeholder="John Doe"
+                  required
+                />
+              </div>
+              <div>
+                <Label className="text-gray-700">Password</Label>
+                <Input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Min. 6 characters"
+                  minLength={6}
+                  required
+                />
+              </div>
+              <div>
+                <Label className="text-gray-700">Role</Label>
+                <Select value={newRole} onValueChange={setNewRole}>
+                  <SelectTrigger className="bg-white border-gray-200">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="super_admin">Super Admin</SelectItem>
+                    <SelectItem value="director">Director</SelectItem>
+                    <SelectItem value="ceo">CEO</SelectItem>
+                    <SelectItem value="vicepresident">Vice President</SelectItem>
+                    <SelectItem value="blog_editor">Blog Editor</SelectItem>
+                    <SelectItem value="mentor">Mentor</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="flex gap-3 mt-4">
+              <Button
+                onClick={() => createUser.mutate()}
+                disabled={createUser.isPending || !newEmail || !newName || !newPassword || newPassword.length < 6}
+                className="bg-[hsl(263,91%,76%)] text-white hover:opacity-90"
+              >
+                {createUser.isPending ? "Creating..." : "Create User"}
+              </Button>
+              <Button variant="outline" onClick={() => setCreateOpen(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Users Table */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
         <Table>
           <TableHeader className="bg-gray-50/50">
@@ -67,7 +194,7 @@ export default function AdminSettings() {
                   </div>
                 </TableCell>
                 <TableCell>
-                   <Select value={getRoleFor(p.user_id)} onValueChange={(v) => updateRole.mutate({ userId: p.user_id, newRole: v })}>
+                  <Select value={getRoleFor(p.user_id)} onValueChange={(v) => updateRole.mutate({ userId: p.user_id, newRole: v })}>
                     <SelectTrigger className="w-[180px] h-8 bg-white border-gray-200">
                       <SelectValue />
                     </SelectTrigger>
@@ -83,15 +210,15 @@ export default function AdminSettings() {
                   </Select>
                 </TableCell>
                 <TableCell>
-                   <div className="flex justify-end">
+                  <div className="flex justify-end">
                     <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-400 hover:text-red-500 hover:bg-red-50">
                       <Trash2 className="h-4 w-4" />
                     </Button>
-                   </div>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
-             {profiles?.length === 0 && (
+            {profiles?.length === 0 && (
               <TableRow>
                 <TableCell colSpan={3} className="h-32 text-center text-gray-500">
                   No users found.
@@ -101,9 +228,9 @@ export default function AdminSettings() {
           </TableBody>
         </Table>
       </div>
-      
+
       <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 text-sm text-blue-700">
-        Tip: To invite a new admin, they must first create an account on the public site. Once they are registered, they will appear in this list, and you can assign them a role.
+        Users created here will have their email auto-confirmed and can log in immediately.
       </div>
     </div>
   );
