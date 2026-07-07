@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,11 +8,30 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2, Send } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle, Loader2, Send } from "lucide-react";
+
+const DEFAULT_CLOSED_MESSAGE = "Recruitările sunt momentan închise. Revino mai târziu pentru o nouă deschidere.";
 
 export default function JoinUs() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const { data: siteSettings, isLoading: settingsLoading } = useQuery({
+    queryKey: ["site-settings"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("site_settings")
+        .select("*")
+        .eq("id", 1)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const applicationsOpen = siteSettings?.applications_open ?? true;
+  const closedMessage = siteSettings?.applications_closed_message ?? DEFAULT_CLOSED_MESSAGE;
   const [formData, setFormData] = useState({
     first_name: "",
     last_name: "",
@@ -33,6 +53,24 @@ export default function JoinUs() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (settingsLoading) {
+      toast({
+        title: "Please wait",
+        description: "We are checking whether recruitment is open.",
+      });
+      return;
+    }
+
+    if (!applicationsOpen) {
+      toast({
+        title: "Recruitments are closed",
+        description: closedMessage,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
 
     const applicationData = {
@@ -75,6 +113,40 @@ export default function JoinUs() {
       school: "",
     });
   };
+
+  if (settingsLoading) {
+    return (
+      <div className="min-h-screen bg-[#1a0b2e] flex flex-col justify-center items-center py-24 px-4 font-sans">
+        <div className="w-full max-w-3xl text-center text-white space-y-4">
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
+            Join the <span className="font-serif italic text-purple-300">Academy</span>
+          </h1>
+          <p className="text-purple-100/70 text-lg">Checking application status...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!applicationsOpen) {
+    return (
+      <div className="min-h-screen bg-[#1a0b2e] flex flex-col justify-center items-center py-24 px-4 font-sans">
+        <div className="w-full max-w-3xl space-y-8">
+          <div className="text-center space-y-4">
+            <h1 className="text-4xl md:text-5xl font-bold text-white tracking-tight">
+              Join the <span className="font-serif italic text-purple-300">Academy</span>
+            </h1>
+            <p className="text-purple-100/70 text-lg">Applications are currently paused.</p>
+          </div>
+
+          <Alert className="border-amber-200 bg-amber-50 text-amber-950">
+            <AlertCircle className="h-4 w-4 text-amber-600" />
+            <AlertTitle>Recruitările sunt momentan închise</AlertTitle>
+            <AlertDescription>{closedMessage}</AlertDescription>
+          </Alert>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#1a0b2e] flex flex-col justify-center items-center py-24 px-4 font-sans">

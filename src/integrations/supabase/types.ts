@@ -170,6 +170,24 @@ export type Database = {
         }
         Relationships: []
       }
+      site_settings: {
+        Row: {
+          applications_closed_message: string
+          applications_open: boolean
+          id: number
+        }
+        Insert: {
+          applications_closed_message?: string
+          applications_open?: boolean
+          id?: number
+        }
+        Update: {
+          applications_closed_message?: string
+          applications_open?: boolean
+          id?: number
+        }
+        Relationships: []
+      }
       posts: {
         Row: {
           author_id: string | null
