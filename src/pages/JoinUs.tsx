@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, Loader2, Send } from "lucide-react";
 
-const DEFAULT_CLOSED_MESSAGE = "Recruitările sunt momentan închise. Revino mai târziu pentru o nouă deschidere.";
+const DEFAULT_CLOSED_MESSAGE = "Recruitment is currently closed. Please check back later for the next opening.";
 
 export default function JoinUs() {
   const { toast } = useToast();
@@ -25,12 +25,14 @@ export default function JoinUs() {
         .eq("id", 1)
         .maybeSingle();
 
-      if (error) throw error;
+      if (error) return null;
       return data;
     },
+    retry: false,
   });
 
-  const applicationsOpen = siteSettings?.applications_open ?? true;
+  // Fail closed: if settings can't be read yet (e.g. migration not applied), treat recruitment as closed.
+  const applicationsOpen = siteSettings?.applications_open ?? false;
   const closedMessage = siteSettings?.applications_closed_message ?? DEFAULT_CLOSED_MESSAGE;
   const [formData, setFormData] = useState({
     first_name: "",
@@ -140,7 +142,7 @@ export default function JoinUs() {
 
           <Alert className="border-amber-200 bg-amber-50 text-amber-950">
             <AlertCircle className="h-4 w-4 text-amber-600" />
-            <AlertTitle>Recruitările sunt momentan închise</AlertTitle>
+            <AlertTitle>Recruitment is currently closed</AlertTitle>
             <AlertDescription>{closedMessage}</AlertDescription>
           </Alert>
         </div>

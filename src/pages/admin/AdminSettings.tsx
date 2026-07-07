@@ -13,7 +13,7 @@ import { useAdmin } from "./AdminLayout";
 import { canAccessSettings } from "./access";
 import { Trash2, Plus, X } from "lucide-react";
 
-const DEFAULT_CLOSED_MESSAGE = "Recruitările sunt momentan închise. Revino mai târziu pentru o nouă deschidere.";
+const DEFAULT_CLOSED_MESSAGE = "Recruitment is currently closed. Please check back later for the next opening.";
 
 export default function AdminSettings() {
   const { role } = useAdmin();
@@ -42,17 +42,20 @@ export default function AdminSettings() {
   const { data: siteSettings } = useQuery({
     queryKey: ["admin-site-settings"],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("site_settings")
         .select("*")
         .eq("id", 1)
         .maybeSingle();
 
+      if (error) return null;
       return data;
     },
+    retry: false,
   });
 
-  const applicationsOpen = siteSettings?.applications_open ?? true;
+  // Fail closed: if settings can't be read yet (e.g. migration not applied), treat recruitment as closed.
+  const applicationsOpen = siteSettings?.applications_open ?? false;
   const closedMessage = siteSettings?.applications_closed_message ?? DEFAULT_CLOSED_MESSAGE;
 
   const getRoleFor = (userId: string) => roles?.find((r) => r.user_id === userId)?.role ?? "none";
