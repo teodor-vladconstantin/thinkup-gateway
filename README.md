@@ -69,4 +69,4 @@ You'll also need a Supabase project configured, with the corresponding environme
 
 ## Deployment
 
-The production site is deployed at [thinkup-gateway.vercel.app](https://thinkup-gateway.vercel.app).
+The production site is deployed at [think-up.academy](https://think-up.academy).
