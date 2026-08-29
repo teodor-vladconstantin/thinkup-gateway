@@ -6,14 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useAdmin } from "./AdminLayout";
 import { canAccessSettings } from "./access";
 import { Trash2, Plus, X } from "lucide-react";
-
-const DEFAULT_CLOSED_MESSAGE = "Recruitment is currently closed. Please check back later for the next opening.";
 
 export default function AdminSettings() {
   const { role } = useAdmin();
@@ -38,25 +34,6 @@ export default function AdminSettings() {
     queryKey: ["admin-user-roles"],
     queryFn: async () => { const { data } = await supabase.from("user_roles").select("*"); return data ?? []; },
   });
-
-  const { data: siteSettings } = useQuery({
-    queryKey: ["admin-site-settings"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("site_settings")
-        .select("*")
-        .eq("id", 1)
-        .maybeSingle();
-
-      if (error) return null;
-      return data;
-    },
-    retry: false,
-  });
-
-  // Fail closed: if settings can't be read yet (e.g. migration not applied), treat recruitment as closed.
-  const applicationsOpen = siteSettings?.applications_open ?? false;
-  const closedMessage = siteSettings?.applications_closed_message ?? DEFAULT_CLOSED_MESSAGE;
 
   const getRoleFor = (userId: string) => roles?.find((r) => r.user_id === userId)?.role ?? "none";
 
@@ -110,24 +87,6 @@ export default function AdminSettings() {
     },
   });
 
-  const toggleApplications = useMutation({
-    mutationFn: async (applicationsOpen: boolean) => {
-      const { error } = await supabase
-        .from("site_settings")
-        .update({ applications_open: applicationsOpen })
-        .eq("id", 1);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["admin-site-settings"] });
-      toast({ title: "Recruitment status updated" });
-    },
-    onError: (err: Error) => {
-      toast({ title: "Failed to update recruitment status", description: err.message, variant: "destructive" });
-    },
-  });
-
   if (!canAccessSettings(role)) return <p className="text-gray-500">Access denied.</p>;
 
   return (
@@ -135,34 +94,6 @@ export default function AdminSettings() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Settings</h1>
         <p className="text-gray-500 mt-1">Manage platform administrators and roles.</p>
-      </div>
-
-      <div className="mb-6 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="space-y-2">
-            <div className="flex items-center gap-3">
-              <h2 className="text-lg font-semibold text-gray-900">Recruitment status</h2>
-              <Badge variant={applicationsOpen ? "default" : "secondary"} className={applicationsOpen ? "bg-green-600 hover:bg-green-700 font-normal" : "font-normal"}>
-                {applicationsOpen ? "Open" : "Closed"}
-              </Badge>
-            </div>
-            <p className="text-sm text-gray-500 max-w-2xl">
-              When closed, the Join Us page shows a notice and the database rejects new applications.
-            </p>
-            <p className="text-xs text-gray-400">Message shown to visitors: {closedMessage}</p>
-          </div>
-
-          <div className="flex items-center gap-3 rounded-full border border-gray-200 px-4 py-3 bg-gray-50">
-            <Switch
-              checked={applicationsOpen}
-              disabled={toggleApplications.isPending}
-              onCheckedChange={(checked) => toggleApplications.mutate(checked)}
-            />
-            <span className="text-sm font-medium text-gray-700">
-              {applicationsOpen ? "Accepting applications" : "Not accepting applications"}
-            </span>
-          </div>
-        </div>
       </div>
 
       {/* Create User Section */}
