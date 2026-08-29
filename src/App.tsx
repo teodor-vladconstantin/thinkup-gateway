@@ -10,6 +10,7 @@ import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import Departments from "./pages/Departments";
 import JoinUs from "./pages/JoinUs";
+import Apply from "./pages/Apply";
 import Contact from "./pages/Contact";
 import Contribute from "./pages/Contribute";
 import Partners from "./pages/Partners";
@@ -23,7 +24,12 @@ import AdminDepartments from "./pages/admin/AdminDepartments";
 import AdminBlog from "./pages/admin/AdminBlog";
 import AdminBlogEditor from "./pages/admin/AdminBlogEditor";
 import AdminPartners from "./pages/admin/AdminPartners";
-import AdminApplications from "./pages/admin/AdminApplications";
+import AdminRecruitment from "./pages/admin/AdminRecruitment";
+import AdminRecruitmentNew from "./pages/admin/AdminRecruitmentNew";
+import AdminRecruitmentBuilder from "./pages/admin/AdminRecruitmentBuilder";
+import AdminRecruitmentPreview from "./pages/admin/AdminRecruitmentPreview";
+import AdminRecruitmentApplicants from "./pages/admin/AdminRecruitmentApplicants";
+import AdminRecruitmentApplicantDetail from "./pages/admin/AdminRecruitmentApplicantDetail";
 import AdminMessages from "./pages/admin/AdminMessages";
 import AdminSettings from "./pages/admin/AdminSettings";
 import NotFound from "./pages/NotFound";
@@ -47,6 +53,7 @@ const App = () => (
             <Route path="/blog/:slug" element={<BlogPost />} />
             <Route path="/departments" element={<Departments />} />
             <Route path="/join-us" element={<JoinUs />} />
+            <Route path="/aplica/:slug" element={<Apply />} />
             <Route path="/contribute" element={<Contribute />} />
             <Route path="/partners" element={<Partners />} />
             <Route path="/contact" element={<Contact />} />
@@ -62,7 +69,12 @@ const App = () => (
             <Route path="blog" element={<AdminBlog />} />
             <Route path="blog/:id" element={<AdminBlogEditor />} />
             <Route path="partners" element={<AdminPartners />} />
-            <Route path="applications" element={<AdminApplications />} />
+            <Route path="recruitment" element={<AdminRecruitment />} />
+            <Route path="recruitment/new" element={<AdminRecruitmentNew />} />
+            <Route path="recruitment/:id/builder" element={<AdminRecruitmentBuilder />} />
+            <Route path="recruitment/:id/preview" element={<AdminRecruitmentPreview />} />
+            <Route path="recruitment/:id/applicants" element={<AdminRecruitmentApplicants />} />
+            <Route path="recruitment/:id/applicants/:applicationId" element={<AdminRecruitmentApplicantDetail />} />
             <Route path="messages" element={<AdminMessages />} />
             <Route path="settings" element={<AdminSettings />} />
           </Route>

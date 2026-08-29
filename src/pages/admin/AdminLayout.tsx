@@ -15,7 +15,7 @@ const navItems = [
   { label: "Departments", to: "/admin/departments", icon: Building2, access: "full_admin" },
   { label: "Blog", to: "/admin/blog", icon: FileText, access: "blog" },
   { label: "Partners", to: "/admin/partners", icon: Handshake, access: "full_admin" },
-  { label: "Applications", to: "/admin/applications", icon: Inbox, access: "full_admin" },
+  { label: "Recruitment", to: "/admin/recruitment", icon: Inbox, access: "full_admin" },
   { label: "Messages", to: "/admin/messages", icon: MessageSquare, access: "full_admin" },
   { label: "Settings", to: "/admin/settings", icon: Settings, access: "super_admin" },
 ];
