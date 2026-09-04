@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@/components/ui/badge';
@@ -8,14 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Download, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import {
-  fetchAnswersForApplications,
-  fetchApplications,
-  fetchCampaign,
-  fetchQuestions,
-  getSignedFileUrls,
-  updateApplicationStatus,
-} from '@/lib/recruitment';
+import { fetchAnswersForApplications, fetchApplications, fetchCampaign, fetchQuestions, updateApplicationStatus } from '@/lib/recruitment';
 import { applicationStatusLabels, type ApplicationStatus } from '@/types/recruitment';
 import { isPrimar } from './access';
 import { useAdmin } from './AdminLayout';
@@ -62,58 +54,42 @@ export default function AdminRecruitmentApplicants() {
     onError: (error: Error) => toast({ title: 'Actualizarea a eșuat', description: error.message, variant: 'destructive' }),
   });
 
-  const [isExporting, setIsExporting] = useState(false);
-
-  const exportCsv = async () => {
+  const exportCsv = () => {
     if (!applications?.length) return;
-    setIsExporting(true);
-    try {
-      const filePaths = (answers ?? []).map((a) => a.file_path).filter((p): p is string => Boolean(p));
-      const fileUrls = await getSignedFileUrls(filePaths);
+    const escape = (value: string) => `"${value.replace(/"/g, '""')}"`;
+    const formatAnswer = (application: { id: string }, answer?: { value_text: string | null; file_path: string | null }) => {
+      if (!answer) return '';
+      if (answer.file_path) return `${window.location.origin}/admin/recruitment/${id}/applicants/${application.id}`;
+      if (!answer.value_text) return '';
+      try {
+        const parsed = JSON.parse(answer.value_text);
+        if (Array.isArray(parsed)) return parsed.join('; ');
+      } catch {
+        // not JSON, plain text value
+      }
+      return answer.value_text;
+    };
 
-      const escape = (value: string) => `"${value.replace(/"/g, '""')}"`;
-      const formatAnswer = (answer?: { value_text: string | null; file_path: string | null }) => {
-        if (!answer) return '';
-        if (answer.file_path) return fileUrls[answer.file_path] ?? answer.file_path;
-        if (!answer.value_text) return '';
-        try {
-          const parsed = JSON.parse(answer.value_text);
-          if (Array.isArray(parsed)) return parsed.join('; ');
-        } catch {
-          // not JSON, plain text value
-        }
-        return answer.value_text;
-      };
-
-      const header = ['Nume', 'Email', 'Telefon', 'Status', 'Data', ...(questions ?? []).map((q) => q.label)];
-      const rows = applications.map((application) => {
-        const applicationAnswers = (answers ?? []).filter((a) => a.application_id === application.id);
-        return [
-          application.applicant_name,
-          application.applicant_email,
-          application.applicant_phone ?? '',
-          applicationStatusLabels[application.status],
-          new Date(application.submitted_at).toLocaleDateString('ro-RO'),
-          ...(questions ?? []).map((q) => formatAnswer(applicationAnswers.find((a) => a.question_id === q.id))),
-        ];
-      });
-      const csv = [header, ...rows].map((row) => row.map(escape).join(',')).join('\n');
-      const blob = new Blob([`﻿${csv}`], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `aplicanti-${campaign?.slug ?? id}.csv`;
-      link.click();
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      toast({
-        title: 'Exportul a eșuat',
-        description: error instanceof Error ? error.message : undefined,
-        variant: 'destructive',
-      });
-    } finally {
-      setIsExporting(false);
-    }
+    const header = ['Nume', 'Email', 'Telefon', 'Status', 'Data', ...(questions ?? []).map((q) => q.label)];
+    const rows = applications.map((application) => {
+      const applicationAnswers = (answers ?? []).filter((a) => a.application_id === application.id);
+      return [
+        application.applicant_name,
+        application.applicant_email,
+        application.applicant_phone ?? '',
+        applicationStatusLabels[application.status],
+        new Date(application.submitted_at).toLocaleDateString('ro-RO'),
+        ...(questions ?? []).map((q) => formatAnswer(application, applicationAnswers.find((a) => a.question_id === q.id))),
+      ];
+    });
+    const csv = [header, ...rows].map((row) => row.map(escape).join(',')).join('\n');
+    const blob = new Blob([`﻿${csv}`], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `aplicanti-${campaign?.slug ?? id}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   if (!campaign) {
@@ -133,14 +109,8 @@ export default function AdminRecruitmentApplicants() {
           <h1 className="text-3xl font-bold tracking-tight text-gray-900">Aplicanți — {campaign.title}</h1>
           <p className="mt-1 text-gray-500">{applications?.length ?? 0} aplicații primite.</p>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={exportCsv}
-          disabled={!applications?.length || isExporting}
-          className="mt-1 shrink-0"
-        >
-          <Download className="mr-2 h-4 w-4" /> {isExporting ? 'Se exportă...' : 'Export CSV'}
+        <Button variant="outline" size="sm" onClick={exportCsv} disabled={!applications?.length} className="mt-1 shrink-0">
+          <Download className="mr-2 h-4 w-4" /> Export CSV
         </Button>
       </div>
 
