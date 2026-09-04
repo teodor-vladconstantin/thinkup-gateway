@@ -1,5 +1,6 @@
 import { Link, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -8,11 +9,15 @@ import { ArrowLeft, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { fetchApplications, fetchCampaign, updateApplicationStatus } from '@/lib/recruitment';
 import { applicationStatusLabels, type ApplicationStatus } from '@/types/recruitment';
+import { isPrimar } from './access';
+import { useAdmin } from './AdminLayout';
 
 export default function AdminRecruitmentApplicants() {
   const { id } = useParams<{ id: string }>();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { role } = useAdmin();
+  const readOnly = isPrimar(role);
 
   const { data: campaign } = useQuery({
     queryKey: ['admin-campaign', id],
@@ -43,7 +48,10 @@ export default function AdminRecruitmentApplicants() {
   return (
     <div className="mx-auto max-w-5xl space-y-6 p-6">
       <div>
-        <Link to="/admin/recruitment" className="mb-2 flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
+        <Link
+          to={readOnly ? '/admin/ambassador-applicants' : '/admin/recruitment'}
+          className="mb-2 flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
+        >
           <ArrowLeft className="h-4 w-4" /> Toate campaniile
         </Link>
         <h1 className="text-3xl font-bold tracking-tight text-gray-900">Aplicanți — {campaign.title}</h1>
@@ -77,23 +85,27 @@ export default function AdminRecruitmentApplicants() {
                     <TableCell className="font-medium text-gray-900">{application.applicant_name}</TableCell>
                     <TableCell className="text-gray-600">{application.applicant_email}</TableCell>
                     <TableCell>
-                      <Select
-                        value={application.status}
-                        onValueChange={(status) =>
-                          statusMutation.mutate({ applicationId: application.id, status: status as ApplicationStatus })
-                        }
-                      >
-                        <SelectTrigger className="h-8 w-[150px]">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {(Object.keys(applicationStatusLabels) as ApplicationStatus[]).map((status) => (
-                            <SelectItem key={status} value={status}>
-                              {applicationStatusLabels[status]}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      {readOnly ? (
+                        <Badge variant="secondary">{applicationStatusLabels[application.status]}</Badge>
+                      ) : (
+                        <Select
+                          value={application.status}
+                          onValueChange={(status) =>
+                            statusMutation.mutate({ applicationId: application.id, status: status as ApplicationStatus })
+                          }
+                        >
+                          <SelectTrigger className="h-8 w-[150px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {(Object.keys(applicationStatusLabels) as ApplicationStatus[]).map((status) => (
+                              <SelectItem key={status} value={status}>
+                                {applicationStatusLabels[status]}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
                     </TableCell>
                     <TableCell className="text-sm text-gray-500">
                       {new Date(application.submitted_at).toLocaleDateString('ro-RO', { year: 'numeric', month: 'short', day: 'numeric' })}

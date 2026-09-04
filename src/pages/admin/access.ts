@@ -13,4 +13,7 @@ export const canAccessBlog = (role: string | null) => canAccessFullAdmin(role) |
 
 export const canAccessSettings = (role: string | null) => role === "super_admin";
 
-export const getAdminHomeRoute = (role: string | null) => (role === "blog_editor" ? "/admin/blog" : "/admin/dashboard");
+export const isPrimar = (role: string | null) => role === "primar";
+
+export const getAdminHomeRoute = (role: string | null) =>
+  role === "blog_editor" ? "/admin/blog" : isPrimar(role) ? "/admin/ambassador-applicants" : "/admin/dashboard";

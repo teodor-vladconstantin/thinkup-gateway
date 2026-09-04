@@ -30,6 +30,7 @@ import AdminRecruitmentBuilder from "./pages/admin/AdminRecruitmentBuilder";
 import AdminRecruitmentPreview from "./pages/admin/AdminRecruitmentPreview";
 import AdminRecruitmentApplicants from "./pages/admin/AdminRecruitmentApplicants";
 import AdminRecruitmentApplicantDetail from "./pages/admin/AdminRecruitmentApplicantDetail";
+import AdminAmbassadorApplicants from "./pages/admin/AdminAmbassadorApplicants";
 import AdminMessages from "./pages/admin/AdminMessages";
 import AdminSettings from "./pages/admin/AdminSettings";
 import NotFound from "./pages/NotFound";
@@ -75,6 +76,7 @@ const App = () => (
             <Route path="recruitment/:id/preview" element={<AdminRecruitmentPreview />} />
             <Route path="recruitment/:id/applicants" element={<AdminRecruitmentApplicants />} />
             <Route path="recruitment/:id/applicants/:applicationId" element={<AdminRecruitmentApplicantDetail />} />
+            <Route path="ambassador-applicants" element={<AdminAmbassadorApplicants />} />
             <Route path="messages" element={<AdminMessages />} />
             <Route path="settings" element={<AdminSettings />} />
           </Route>
