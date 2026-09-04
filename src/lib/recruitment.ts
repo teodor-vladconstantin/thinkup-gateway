@@ -227,6 +227,16 @@ export async function fetchAnswers(applicationId: string): Promise<ApplicationAn
   return (data ?? []) as ApplicationAnswer[];
 }
 
+export async function fetchAnswersForApplications(applicationIds: string[]): Promise<ApplicationAnswer[]> {
+  if (applicationIds.length === 0) return [];
+  const { data, error } = await supabase
+    .from('recruitment_application_answers')
+    .select('*')
+    .in('application_id', applicationIds);
+  if (error) throw error;
+  return (data ?? []) as ApplicationAnswer[];
+}
+
 export async function updateApplicationStatus(id: string, status: ApplicationStatus): Promise<void> {
   const { error } = await supabase.from('recruitment_applications').update({ status }).eq('id', id);
   if (error) throw error;
