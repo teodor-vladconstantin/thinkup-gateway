@@ -3,7 +3,7 @@ import { Outlet, useNavigate, Link, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { LayoutDashboard, Users, Building2, FileText, Handshake, Inbox, MessageSquare, Settings, LogOut, Menu, X } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
-import { canAccessBlog, canAccessFullAdmin, canAccessSettings, getAdminHomeRoute } from "./access";
+import { canAccessBlog, canAccessFullAdmin, canAccessSettings, getAdminHomeRoute, isPrimar } from "./access";
 
 type AdminCtx = { user: User; role: string | null; profile: any };
 const AdminContext = createContext<AdminCtx | null>(null);
@@ -18,6 +18,7 @@ const navItems = [
   { label: "Recruitment", to: "/admin/recruitment", icon: Inbox, access: "full_admin" },
   { label: "Messages", to: "/admin/messages", icon: MessageSquare, access: "full_admin" },
   { label: "Settings", to: "/admin/settings", icon: Settings, access: "super_admin" },
+  { label: "Aplicanți Ambasadori", to: "/admin/ambassador-applicants", icon: Users, access: "primar" },
 ];
 
 export default function AdminLayout() {
@@ -48,8 +49,8 @@ export default function AdminLayout() {
 
         const userRole = roles?.[0]?.role ?? null;
         
-        // If not a full admin or blog editor, kick out
-        if (!userRole || (!canAccessFullAdmin(userRole) && userRole !== "blog_editor")) {
+        // If not a full admin, blog editor, or primar, kick out
+        if (!userRole || (!canAccessFullAdmin(userRole) && userRole !== "blog_editor" && !isPrimar(userRole))) {
           await supabase.auth.signOut();
           navigate("/admin/login");
           return;
@@ -103,8 +104,21 @@ export default function AdminLayout() {
       return;
     }
 
+    if (isPrimar(role)) {
+      // Primar may only browse the ambassador-applicants list and, within it, a single
+      // campaign's applicants (list + detail) -- not campaign management (new/builder/preview)
+      // or any other admin section. The real boundary is RLS; this just keeps the UI honest.
+      const isAmbassadorApplicantsRoute =
+        /^\/admin\/ambassador-applicants(\/|$)/.test(location.pathname) ||
+        /^\/admin\/recruitment\/[^/]+\/applicants(\/[^/]+)?$/.test(location.pathname);
+      if (!isAmbassadorApplicantsRoute) {
+        navigate("/admin/ambassador-applicants", { replace: true });
+      }
+      return;
+    }
+
     if (location.pathname === "/admin") {
-      navigate(getHomeRoute(role), { replace: true });
+      navigate(getAdminHomeRoute(role), { replace: true });
     }
   }, [loading, location.pathname, navigate, role]);
 
@@ -152,6 +166,7 @@ export default function AdminLayout() {
               if (item.access === "super_admin" && !canAccessSettings(role)) return null;
               if (item.access === "full_admin" && !canAccessFullAdmin(role)) return null;
               if (item.access === "blog" && !canAccessBlog(role)) return null;
+              if (item.access === "primar" && !isPrimar(role)) return null;
               const active = location.pathname === item.to;
               return (
                 <Link key={item.to} to={item.to} onClick={() => setSidebarOpen(false)}

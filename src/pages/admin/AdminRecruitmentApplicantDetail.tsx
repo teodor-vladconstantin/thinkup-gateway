@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -17,11 +18,15 @@ import {
   updateApplicationStatus,
 } from '@/lib/recruitment';
 import { applicationStatusLabels, type ApplicationStatus } from '@/types/recruitment';
+import { isPrimar } from './access';
+import { useAdmin } from './AdminLayout';
 
 export default function AdminRecruitmentApplicantDetail() {
   const { id: campaignId, applicationId } = useParams<{ id: string; applicationId: string }>();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { role } = useAdmin();
+  const readOnly = isPrimar(role);
   const [notes, setNotes] = useState('');
 
   const { data: application } = useQuery({
@@ -94,18 +99,22 @@ export default function AdminRecruitmentApplicantDetail() {
             Trimis pe {new Date(application.submitted_at).toLocaleString('ro-RO')}
           </p>
         </div>
-        <Select value={application.status} onValueChange={(status) => statusMutation.mutate(status as ApplicationStatus)}>
-          <SelectTrigger className="w-[170px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {(Object.keys(applicationStatusLabels) as ApplicationStatus[]).map((status) => (
-              <SelectItem key={status} value={status}>
-                {applicationStatusLabels[status]}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {readOnly ? (
+          <Badge variant="secondary" className="w-fit">{applicationStatusLabels[application.status]}</Badge>
+        ) : (
+          <Select value={application.status} onValueChange={(status) => statusMutation.mutate(status as ApplicationStatus)}>
+            <SelectTrigger className="w-[170px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {(Object.keys(applicationStatusLabels) as ApplicationStatus[]).map((status) => (
+                <SelectItem key={status} value={status}>
+                  {applicationStatusLabels[status]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       <Card>
@@ -144,20 +153,22 @@ export default function AdminRecruitmentApplicantDetail() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Notițe interne</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <Label htmlFor="notes" className="sr-only">Notițe interne</Label>
-          <Textarea id="notes" value={notes} onChange={(event) => setNotes(event.target.value)} className="min-h-[120px]" />
-          <div className="flex justify-end">
-            <Button onClick={() => notesMutation.mutate()} disabled={notesMutation.isPending}>
-              {notesMutation.isPending ? 'Se salvează...' : 'Salvează notițele'}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      {!readOnly && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Notițe interne</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Label htmlFor="notes" className="sr-only">Notițe interne</Label>
+            <Textarea id="notes" value={notes} onChange={(event) => setNotes(event.target.value)} className="min-h-[120px]" />
+            <div className="flex justify-end">
+              <Button onClick={() => notesMutation.mutate()} disabled={notesMutation.isPending}>
+                {notesMutation.isPending ? 'Se salvează...' : 'Salvează notițele'}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
