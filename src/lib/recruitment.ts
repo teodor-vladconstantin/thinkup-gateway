@@ -253,20 +253,6 @@ export async function getSignedFileUrl(filePath: string): Promise<string> {
   return data.signedUrl;
 }
 
-const SEVEN_DAYS_IN_SECONDS = 60 * 60 * 24 * 7;
-
-export async function getSignedFileUrls(filePaths: string[]): Promise<Record<string, string>> {
-  if (filePaths.length === 0) return {};
-  const { data, error } = await supabase.storage
-    .from('recruitment-uploads')
-    .createSignedUrls(filePaths, SEVEN_DAYS_IN_SECONDS);
-  if (error) throw error;
-  const urls: Record<string, string> = {};
-  for (const item of data ?? []) {
-    if (item.path && item.signedUrl) urls[item.path] = item.signedUrl;
-  }
-  return urls;
-}
 
 const DIACRITICS_PATTERN = new RegExp('[̀-ͯ]', 'g');
 
