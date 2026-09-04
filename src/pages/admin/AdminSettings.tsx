@@ -154,6 +154,7 @@ export default function AdminSettings() {
                     <SelectItem value="vicepresident">Vice President</SelectItem>
                     <SelectItem value="blog_editor">Blog Editor</SelectItem>
                     <SelectItem value="mentor">Mentor</SelectItem>
+                    <SelectItem value="primar">Primar</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -206,6 +207,7 @@ export default function AdminSettings() {
                       <SelectItem value="vicepresident">Vice President</SelectItem>
                       <SelectItem value="blog_editor">Blog Editor</SelectItem>
                       <SelectItem value="mentor">Mentor</SelectItem>
+                      <SelectItem value="primar">Primar</SelectItem>
                     </SelectContent>
                   </Select>
                 </TableCell>
