@@ -13,7 +13,7 @@ interface CreateUserRequest {
   role: string;
 }
 
-const VALID_ROLES = ["super_admin", "director", "ceo", "vicepresident", "blog_editor", "mentor"] as const;
+const VALID_ROLES = ["super_admin", "director", "ceo", "vicepresident", "blog_editor", "mentor", "primar"] as const;
 
 serve(async (req) => {
   // Handle CORS preflight
