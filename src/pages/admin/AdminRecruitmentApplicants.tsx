@@ -5,9 +5,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Eye } from 'lucide-react';
+import { ArrowLeft, Download, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { fetchApplications, fetchCampaign, updateApplicationStatus } from '@/lib/recruitment';
+import { fetchAnswersForApplications, fetchApplications, fetchCampaign, fetchQuestions, updateApplicationStatus } from '@/lib/recruitment';
 import { applicationStatusLabels, type ApplicationStatus } from '@/types/recruitment';
 import { isPrimar } from './access';
 import { useAdmin } from './AdminLayout';
@@ -31,6 +31,19 @@ export default function AdminRecruitmentApplicants() {
     enabled: Boolean(id),
   });
 
+  const { data: questions } = useQuery({
+    queryKey: ['campaign-questions', id],
+    queryFn: () => fetchQuestions(id!),
+    enabled: Boolean(id),
+  });
+
+  const applicationIds = applications?.map((application) => application.id) ?? [];
+  const { data: answers } = useQuery({
+    queryKey: ['campaign-application-answers', id, applicationIds],
+    queryFn: () => fetchAnswersForApplications(applicationIds),
+    enabled: applicationIds.length > 0,
+  });
+
   const statusMutation = useMutation({
     mutationFn: ({ applicationId, status }: { applicationId: string; status: ApplicationStatus }) =>
       updateApplicationStatus(applicationId, status),
@@ -41,21 +54,64 @@ export default function AdminRecruitmentApplicants() {
     onError: (error: Error) => toast({ title: 'Actualizarea a eșuat', description: error.message, variant: 'destructive' }),
   });
 
+  const exportCsv = () => {
+    if (!applications?.length) return;
+    const escape = (value: string) => `"${value.replace(/"/g, '""')}"`;
+    const formatAnswer = (answer?: { value_text: string | null; file_path: string | null }) => {
+      if (!answer) return '';
+      if (answer.file_path) return answer.file_path;
+      if (!answer.value_text) return '';
+      try {
+        const parsed = JSON.parse(answer.value_text);
+        if (Array.isArray(parsed)) return parsed.join('; ');
+      } catch {
+        // not JSON, plain text value
+      }
+      return answer.value_text;
+    };
+
+    const header = ['Nume', 'Email', 'Telefon', 'Status', 'Data', ...(questions ?? []).map((q) => q.label)];
+    const rows = applications.map((application) => {
+      const applicationAnswers = (answers ?? []).filter((a) => a.application_id === application.id);
+      return [
+        application.applicant_name,
+        application.applicant_email,
+        application.applicant_phone ?? '',
+        applicationStatusLabels[application.status],
+        new Date(application.submitted_at).toLocaleDateString('ro-RO'),
+        ...(questions ?? []).map((q) => formatAnswer(applicationAnswers.find((a) => a.question_id === q.id))),
+      ];
+    });
+    const csv = [header, ...rows].map((row) => row.map(escape).join(',')).join('\n');
+    const blob = new Blob([`﻿${csv}`], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `aplicanti-${campaign?.slug ?? id}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   if (!campaign) {
     return <div className="p-6 text-gray-500">Se încarcă...</div>;
   }
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 p-6">
-      <div>
-        <Link
-          to={readOnly ? '/admin/ambassador-applicants' : '/admin/recruitment'}
-          className="mb-2 flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
-        >
-          <ArrowLeft className="h-4 w-4" /> Toate campaniile
-        </Link>
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900">Aplicanți — {campaign.title}</h1>
-        <p className="mt-1 text-gray-500">{applications?.length ?? 0} aplicații primite.</p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <Link
+            to={readOnly ? '/admin/ambassador-applicants' : '/admin/recruitment'}
+            className="mb-2 flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
+          >
+            <ArrowLeft className="h-4 w-4" /> Toate campaniile
+          </Link>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Aplicanți — {campaign.title}</h1>
+          <p className="mt-1 text-gray-500">{applications?.length ?? 0} aplicații primite.</p>
+        </div>
+        <Button variant="outline" size="sm" onClick={exportCsv} disabled={!applications?.length} className="mt-1 shrink-0">
+          <Download className="mr-2 h-4 w-4" /> Export CSV
+        </Button>
       </div>
 
       <Card>
