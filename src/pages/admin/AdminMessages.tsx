@@ -14,12 +14,20 @@ export default function AdminMessages() {
 
   const { data: msgs } = useQuery({
     queryKey: ["admin-messages"],
-    queryFn: async () => { const { data } = await supabase.from("messages").select("*").order("created_at", { ascending: false }); return data ?? []; },
+    queryFn: async () => {
+      const { data, error } = await supabase.from("messages").select("*").order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
   });
 
   const del = useMutation({
-    mutationFn: async (id: string) => { await supabase.from("messages").delete().eq("id", id); },
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("messages").delete().eq("id", id);
+      if (error) throw error;
+    },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-messages"] }); toast({ title: "Deleted" }); },
+    onError: (error: Error) => toast({ title: "Delete failed", description: error.message, variant: "destructive" }),
   });
 
   return (

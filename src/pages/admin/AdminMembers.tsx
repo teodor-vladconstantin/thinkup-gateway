@@ -42,7 +42,8 @@ export default function AdminMembers() {
   const { data: departments } = useQuery({
     queryKey: ["departments"],
     queryFn: async () => {
-      const { data } = await supabase.from("departments").select("*").order("order_index");
+      const { data, error } = await supabase.from("departments").select("*").order("order_index");
+      if (error) throw error;
       return data ?? [];
     },
   });
@@ -50,11 +51,12 @@ export default function AdminMembers() {
   const { data: members, isLoading } = useQuery({
     queryKey: ["admin-members"],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("members")
         .select("*")
         .order("created_at", { ascending: true })
         .order("id", { ascending: true });
+      if (error) throw error;
       return data ?? [];
     },
   });
@@ -63,11 +65,11 @@ export default function AdminMembers() {
 
   const save = useMutation({
     mutationFn: async () => {
-      if (editing) {
-        await supabase.from("members").update(form).eq("id", editing);
-      } else {
-        await supabase.from("members").insert([form]);
-      }
+      const payload = { ...form, order_index: Number.isNaN(form.order_index) ? 0 : form.order_index };
+      const { error } = editing
+        ? await supabase.from("members").update(payload).eq("id", editing)
+        : await supabase.from("members").insert([payload]);
+      if (error) throw error;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-members"] });
@@ -81,19 +83,27 @@ export default function AdminMembers() {
 
   const del = useMutation({
     mutationFn: async (id: string) => {
-      await supabase.from("members").delete().eq("id", id);
+      const { error } = await supabase.from("members").delete().eq("id", id);
+      if (error) throw error;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-members"] });
       toast({ title: "Deleted" });
     },
+    onError: (e: any) => {
+      toast({ title: "Error", description: e.message, variant: "destructive" });
+    },
   });
 
   const toggleVis = useMutation({
     mutationFn: async ({ id, visible }: { id: string; visible: boolean }) => {
-      await supabase.from("members").update({ visible }).eq("id", id);
+      const { error } = await supabase.from("members").update({ visible }).eq("id", id);
+      if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-members"] }),
+    onError: (e: any) => {
+      toast({ title: "Error", description: e.message, variant: "destructive" });
+    },
   });
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -292,8 +302,8 @@ export default function AdminMembers() {
               <Input
                 id="order"
                 type="number"
-                value={form.order_index}
-                onChange={(e) => setForm((f) => ({ ...f, order_index: parseInt(e.target.value) || 0 }))}
+                value={Number.isNaN(form.order_index) ? "" : form.order_index}
+                onChange={(e) => setForm((f) => ({ ...f, order_index: e.target.valueAsNumber }))}
               />
             </div>
 

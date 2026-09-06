@@ -20,23 +20,32 @@ export default function AdminBlog() {
 const { data: posts } = useQuery({
     queryKey: ["admin-posts"],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("posts")
         .select("*")
         .order("created_at", { ascending: false })
         .order("id", { ascending: true });
+      if (error) throw error;
       return data ?? [];
     },
   });
 
   const togglePub = useMutation({
-    mutationFn: async ({ id, published }: { id: string; published: boolean }) => { await supabase.from("posts").update({ published }).eq("id", id); },
+    mutationFn: async ({ id, published }: { id: string; published: boolean }) => {
+      const { error } = await supabase.from("posts").update({ published }).eq("id", id);
+      if (error) throw error;
+    },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-posts"] }),
+    onError: (error: Error) => toast({ title: "Update failed", description: error.message, variant: "destructive" }),
   });
 
   const del = useMutation({
-    mutationFn: async (id: string) => { await supabase.from("posts").delete().eq("id", id); },
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("posts").delete().eq("id", id);
+      if (error) throw error;
+    },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-posts"] }); toast({ title: "Deleted" }); },
+    onError: (error: Error) => toast({ title: "Delete failed", description: error.message, variant: "destructive" }),
   });
 
   return (

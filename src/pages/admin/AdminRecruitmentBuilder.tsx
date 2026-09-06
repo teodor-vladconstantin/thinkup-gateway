@@ -30,6 +30,7 @@ import { ArrowLeft, ArrowUp, ArrowDown, Eye, Plus, Trash2, Users } from 'lucide-
 
 const isTempId = (id: string) => id.startsWith('temp-');
 const questionTypes = Object.keys(questionTypeLabels) as QuestionType[];
+const AUTOSAVE_DELAY_MS = 1200;
 
 export default function AdminRecruitmentBuilder() {
   const { id } = useParams<{ id: string }>();
@@ -39,6 +40,8 @@ export default function AdminRecruitmentBuilder() {
   const [titleDraft, setTitleDraft] = useState('');
   const [descriptionDraft, setDescriptionDraft] = useState('');
   const [optionsText, setOptionsText] = useState<Record<string, string>>({});
+  const [isDirty, setIsDirty] = useState(false);
+  const [autosaveState, setAutosaveState] = useState<'idle' | 'saved' | 'error'>('idle');
 
   const { data: campaign } = useQuery({
     queryKey: ['admin-campaign', id],
@@ -46,12 +49,14 @@ export default function AdminRecruitmentBuilder() {
     enabled: Boolean(id),
   });
 
+  // Skip re-syncing from the server while the user has unsaved edits, so a background
+  // refetch (e.g. window refocus) can't silently wipe out what they're typing.
   useEffect(() => {
-    if (campaign) {
+    if (campaign && !isDirty) {
       setTitleDraft(campaign.title);
       setDescriptionDraft(campaign.description ?? '');
     }
-  }, [campaign]);
+  }, [campaign, isDirty]);
 
   const { data: fetchedQuestions } = useQuery({
     queryKey: ['campaign-questions', id],
@@ -60,11 +65,11 @@ export default function AdminRecruitmentBuilder() {
   });
 
   useEffect(() => {
-    if (fetchedQuestions) {
+    if (fetchedQuestions && !isDirty) {
       setDraft(fetchedQuestions);
       setOptionsText(Object.fromEntries(fetchedQuestions.map((q) => [q.id, (q.options ?? []).join(', ')])));
     }
-  }, [fetchedQuestions]);
+  }, [fetchedQuestions, isDirty]);
 
   const statusMutation = useMutation({
     mutationFn: (status: CampaignStatus) => updateCampaignStatus(id!, status),
@@ -74,16 +79,6 @@ export default function AdminRecruitmentBuilder() {
       toast({ title: 'Status actualizat' });
     },
     onError: (error: Error) => toast({ title: 'Actualizarea a eșuat', description: error.message, variant: 'destructive' }),
-  });
-
-  const detailsMutation = useMutation({
-    mutationFn: () => updateCampaign(id!, { title: titleDraft.trim(), description: descriptionDraft.trim() || null }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-campaign', id] });
-      queryClient.invalidateQueries({ queryKey: ['admin-campaigns'] });
-      toast({ title: 'Detalii campanie salvate' });
-    },
-    onError: (error: Error) => toast({ title: 'Salvarea a eșuat', description: error.message, variant: 'destructive' }),
   });
 
   const saveMutation = useMutation({
@@ -118,15 +113,35 @@ export default function AdminRecruitmentBuilder() {
               }),
         ),
       );
+
+      await updateCampaign(id!, { title: titleDraft.trim(), description: descriptionDraft.trim() || null });
     },
     onSuccess: () => {
+      setIsDirty(false);
+      setAutosaveState('saved');
       queryClient.invalidateQueries({ queryKey: ['campaign-questions', id] });
-      toast({ title: 'Formular salvat', description: 'Întrebările au fost actualizate.' });
+      queryClient.invalidateQueries({ queryKey: ['admin-campaign', id] });
+      queryClient.invalidateQueries({ queryKey: ['admin-campaigns'] });
     },
-    onError: (error: Error) => toast({ title: 'Salvarea a eșuat', description: error.message, variant: 'destructive' }),
+    onError: (error: Error) => {
+      setAutosaveState('error');
+      toast({ title: 'Salvarea a eșuat', description: error.message, variant: 'destructive' });
+    },
   });
 
+  // Autosave: debounce and persist any edit so Preview always reflects the latest draft
+  // without needing a manual save click.
+  useEffect(() => {
+    if (!isDirty) return;
+    const timer = setTimeout(() => {
+      saveMutation.mutate();
+    }, AUTOSAVE_DELAY_MS);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draft, titleDraft, descriptionDraft, isDirty]);
+
   const addQuestion = () => {
+    setIsDirty(true);
     const newId = `temp-${crypto.randomUUID()}`;
     setOptionsText((current) => ({ ...current, [newId]: '' }));
     setDraft((current) => [
@@ -147,17 +162,20 @@ export default function AdminRecruitmentBuilder() {
   };
 
   const updateDraft = (questionId: string, patch: Partial<CampaignQuestion>) => {
+    setIsDirty(true);
     setDraft((current) => current.map((question) => (question.id === questionId ? { ...question, ...patch } : question)));
   };
 
   const removeDraft = (questionId: string) => {
+    setIsDirty(true);
     setDraft((current) => current.filter((question) => question.id !== questionId));
   };
 
   const moveDraft = (index: number, direction: -1 | 1) => {
+    const target = index + direction;
+    if (target < 0 || target >= draft.length) return;
+    setIsDirty(true);
     setDraft((current) => {
-      const target = index + direction;
-      if (target < 0 || target >= current.length) return current;
       const next = [...current];
       [next[index], next[target]] = [next[target], next[index]];
       return next;
@@ -177,6 +195,17 @@ export default function AdminRecruitmentBuilder() {
           </Link>
           <h1 className="text-3xl font-bold tracking-tight text-gray-900">{campaign.title}</h1>
           <p className="mt-1 text-gray-500">/aplica/{campaign.slug}</p>
+          <p className="mt-1 text-sm">
+            {saveMutation.isPending ? (
+              <span className="text-gray-500">Se salvează automat...</span>
+            ) : autosaveState === 'error' ? (
+              <span className="text-red-600">Salvarea automată a eșuat</span>
+            ) : isDirty ? (
+              <span className="text-amber-600">Modificări nesalvate — se salvează automat</span>
+            ) : (
+              <span className="text-green-600">Toate modificările sunt salvate</span>
+            )}
+          </p>
         </div>
 
         <div className="flex items-center gap-2">
@@ -210,20 +239,11 @@ export default function AdminRecruitmentBuilder() {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label>Titlu</Label>
-            <Input value={titleDraft} onChange={(event) => setTitleDraft(event.target.value)} />
+            <Input value={titleDraft} onChange={(event) => { setIsDirty(true); setTitleDraft(event.target.value); }} />
           </div>
           <div className="space-y-2">
             <Label>Descriere</Label>
-            <Textarea value={descriptionDraft} onChange={(event) => setDescriptionDraft(event.target.value)} />
-          </div>
-          <div className="flex justify-end">
-            <Button
-              variant="outline"
-              onClick={() => detailsMutation.mutate()}
-              disabled={detailsMutation.isPending || (titleDraft === campaign.title && descriptionDraft === (campaign.description ?? ''))}
-            >
-              {detailsMutation.isPending ? 'Se salvează...' : 'Salvează detaliile'}
-            </Button>
+            <Textarea value={descriptionDraft} onChange={(event) => { setIsDirty(true); setDescriptionDraft(event.target.value); }} />
           </div>
         </CardContent>
       </Card>
@@ -342,8 +362,11 @@ export default function AdminRecruitmentBuilder() {
           ))}
 
           <div className="flex justify-end pt-2">
-            <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
-              {saveMutation.isPending ? 'Se salvează...' : 'Salvează formularul'}
+            <Button
+              onClick={() => saveMutation.mutate(undefined, { onSuccess: () => toast({ title: 'Formular salvat', description: 'Întrebările au fost actualizate.' }) })}
+              disabled={saveMutation.isPending || !isDirty}
+            >
+              {saveMutation.isPending ? 'Se salvează...' : 'Salvează acum'}
             </Button>
           </div>
         </CardContent>
