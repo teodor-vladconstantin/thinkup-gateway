@@ -38,6 +38,7 @@ export default function AdminRecruitmentBuilder() {
   const [draft, setDraft] = useState<CampaignQuestion[]>([]);
   const [titleDraft, setTitleDraft] = useState('');
   const [descriptionDraft, setDescriptionDraft] = useState('');
+  const [optionsText, setOptionsText] = useState<Record<string, string>>({});
 
   const { data: campaign } = useQuery({
     queryKey: ['admin-campaign', id],
@@ -59,7 +60,10 @@ export default function AdminRecruitmentBuilder() {
   });
 
   useEffect(() => {
-    if (fetchedQuestions) setDraft(fetchedQuestions);
+    if (fetchedQuestions) {
+      setDraft(fetchedQuestions);
+      setOptionsText(Object.fromEntries(fetchedQuestions.map((q) => [q.id, (q.options ?? []).join(', ')])));
+    }
   }, [fetchedQuestions]);
 
   const statusMutation = useMutation({
@@ -123,10 +127,12 @@ export default function AdminRecruitmentBuilder() {
   });
 
   const addQuestion = () => {
+    const newId = `temp-${crypto.randomUUID()}`;
+    setOptionsText((current) => ({ ...current, [newId]: '' }));
     setDraft((current) => [
       ...current,
       {
-        id: `temp-${crypto.randomUUID()}`,
+        id: newId,
         campaign_id: id!,
         type: 'short_text',
         label: 'Întrebare nouă',
@@ -292,12 +298,14 @@ export default function AdminRecruitmentBuilder() {
                 <div className="mt-4 space-y-2">
                   <Label>Opțiuni (separate prin virgulă)</Label>
                   <Input
-                    value={(question.options ?? []).join(', ')}
-                    onChange={(event) =>
+                    value={optionsText[question.id] ?? (question.options ?? []).join(', ')}
+                    onChange={(event) => {
+                      const text = event.target.value;
+                      setOptionsText((current) => ({ ...current, [question.id]: text }));
                       updateDraft(question.id, {
-                        options: event.target.value.split(',').map((value) => value.trim()).filter(Boolean),
-                      })
-                    }
+                        options: text.split(',').map((value) => value.trim()).filter(Boolean),
+                      });
+                    }}
                   />
                 </div>
               )}
