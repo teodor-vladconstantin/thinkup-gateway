@@ -75,7 +75,7 @@ export default function CampaignQuestionsForm({
                 </SelectContent>
               </Select>
             ) : question.type === 'single_choice' ? (
-              <div className="flex flex-wrap gap-3 rounded-md border border-gray-200 bg-gray-50 p-3">
+              <div className="flex flex-col gap-3 rounded-md border border-gray-200 bg-gray-50 p-3">
                 {(question.options ?? []).map((option) => (
                   <label key={option} className="flex items-center gap-2 text-sm text-gray-700">
                     <input
@@ -91,7 +91,7 @@ export default function CampaignQuestionsForm({
                 ))}
               </div>
             ) : question.type === 'multiple_choice' ? (
-              <div className="flex flex-wrap gap-4 rounded-md border border-gray-200 bg-gray-50 p-3">
+              <div className="flex flex-col gap-3 rounded-md border border-gray-200 bg-gray-50 p-3">
                 {(question.options ?? []).map((option) => {
                   const selected = Array.isArray(value) && value.includes(option);
                   return (

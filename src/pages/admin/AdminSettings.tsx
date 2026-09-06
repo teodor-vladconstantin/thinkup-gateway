@@ -27,24 +27,36 @@ export default function AdminSettings() {
 
   const { data: profiles } = useQuery({
     queryKey: ["admin-profiles"],
-    queryFn: async () => { const { data } = await supabase.from("profiles").select("*"); return data ?? []; },
+    queryFn: async () => {
+      const { data, error } = await supabase.from("profiles").select("*");
+      if (error) throw error;
+      return data ?? [];
+    },
   });
 
   const { data: roles } = useQuery({
     queryKey: ["admin-user-roles"],
-    queryFn: async () => { const { data } = await supabase.from("user_roles").select("*"); return data ?? []; },
+    queryFn: async () => {
+      const { data, error } = await supabase.from("user_roles").select("*");
+      if (error) throw error;
+      return data ?? [];
+    },
   });
 
   const getRoleFor = (userId: string) => roles?.find((r) => r.user_id === userId)?.role ?? "none";
 
   const updateRole = useMutation({
     mutationFn: async ({ userId, newRole }: { userId: string; newRole: string }) => {
-      await supabase.from("user_roles").delete().eq("user_id", userId);
+      // Delete first so a failed insert leaves the user with no role rather than two roles at once.
+      const { error: deleteError } = await supabase.from("user_roles").delete().eq("user_id", userId);
+      if (deleteError) throw deleteError;
       if (newRole !== "none") {
-        await supabase.from("user_roles").insert([{ user_id: userId, role: newRole as any }]);
+        const { error: insertError } = await supabase.from("user_roles").insert([{ user_id: userId, role: newRole as any }]);
+        if (insertError) throw insertError;
       }
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-user-roles"] }); toast({ title: "Role updated" }); },
+    onError: (e: any) => toast({ title: "Failed to update role", description: e.message, variant: "destructive" }),
   });
 
   const createUser = useMutation({

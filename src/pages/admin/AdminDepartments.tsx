@@ -21,21 +21,32 @@ export default function AdminDepartments() {
 
   const { data: departments } = useQuery({
     queryKey: ["admin-departments"],
-    queryFn: async () => { const { data } = await supabase.from("departments").select("*").order("order_index"); return data ?? []; },
+    queryFn: async () => {
+      const { data, error } = await supabase.from("departments").select("*").order("order_index");
+      if (error) throw error;
+      return data ?? [];
+    },
   });
 
   const save = useMutation({
     mutationFn: async () => {
-      if (editing) await supabase.from("departments").update(form).eq("id", editing);
-      else await supabase.from("departments").insert([form]);
+      const payload = { ...form, order_index: Number.isNaN(form.order_index) ? 0 : form.order_index };
+      const { error } = editing
+        ? await supabase.from("departments").update(payload).eq("id", editing)
+        : await supabase.from("departments").insert([payload]);
+      if (error) throw error;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-departments"] }); setOpen(false); toast({ title: "Saved!" }); },
     onError: (e: any) => toast({ title: "Error", description: e.message, variant: "destructive" }),
   });
 
   const del = useMutation({
-    mutationFn: async (id: string) => { await supabase.from("departments").delete().eq("id", id); },
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("departments").delete().eq("id", id);
+      if (error) throw error;
+    },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-departments"] }); toast({ title: "Deleted" }); },
+    onError: (e: any) => toast({ title: "Error", description: e.message, variant: "destructive" }),
   });
 
   const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
@@ -104,7 +115,7 @@ export default function AdminDepartments() {
             <div><Label>Name</Label><Input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value, slug: editing ? f.slug : slugify(e.target.value) }))} /></div>
             <div><Label>Slug</Label><Input value={form.slug} onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))} /></div>
             <div><Label>Description</Label><Input value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} /></div>
-            <div><Label>Order Index</Label><Input type="number" value={form.order_index} onChange={(e) => setForm((f) => ({ ...f, order_index: parseInt(e.target.value) || 0 }))} /></div>
+            <div><Label>Order Index</Label><Input type="number" value={Number.isNaN(form.order_index) ? "" : form.order_index} onChange={(e) => setForm((f) => ({ ...f, order_index: e.target.valueAsNumber }))} /></div>
             <Button onClick={() => save.mutate()} disabled={save.isPending} className="w-full bg-primary hover:bg-primary/90 text-white mt-2">
               {save.isPending ? "Saving..." : "Save Department"}
             </Button>

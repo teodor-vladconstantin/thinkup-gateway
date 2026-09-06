@@ -23,33 +23,45 @@ export default function AdminPartners() {
 
   const { data: partners } = useQuery({
     queryKey: ["admin-partners"],
-    queryFn: async () => { 
-      const { data } = await supabase
+    queryFn: async () => {
+      const { data, error } = await supabase
         .from("partners")
         .select("*")
         .order("created_at", { ascending: true })
         .order("id", { ascending: true }); // Absolute stable sort
-      return data ?? []; 
+      if (error) throw error;
+      return data ?? [];
     },
   });
 
   const save = useMutation({
     mutationFn: async () => {
-      if (editing) await supabase.from("partners").update(form).eq("id", editing);
-      else await supabase.from("partners").insert([form]);
+      const payload = { ...form, order_index: Number.isNaN(form.order_index) ? 0 : form.order_index };
+      const { error } = editing
+        ? await supabase.from("partners").update(payload).eq("id", editing)
+        : await supabase.from("partners").insert([payload]);
+      if (error) throw error;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-partners"] }); setOpen(false); toast({ title: "Saved!" }); },
     onError: (e: any) => toast({ title: "Error", description: e.message, variant: "destructive" }),
   });
 
   const del = useMutation({
-    mutationFn: async (id: string) => { await supabase.from("partners").delete().eq("id", id); },
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("partners").delete().eq("id", id);
+      if (error) throw error;
+    },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-partners"] }); toast({ title: "Deleted" }); },
+    onError: (e: any) => toast({ title: "Error", description: e.message, variant: "destructive" }),
   });
 
   const toggleVis = useMutation({
-    mutationFn: async ({ id, visible }: { id: string; visible: boolean }) => { await supabase.from("partners").update({ visible }).eq("id", id); },
+    mutationFn: async ({ id, visible }: { id: string; visible: boolean }) => {
+      const { error } = await supabase.from("partners").update({ visible }).eq("id", id);
+      if (error) throw error;
+    },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-partners"] }),
+    onError: (e: any) => toast({ title: "Error", description: e.message, variant: "destructive" }),
   });
 
 
@@ -200,7 +212,7 @@ export default function AdminPartners() {
                <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
                     <Label htmlFor="order">Display Order</Label>
-                    <Input id="order" type="number" value={form.order_index} onChange={(e) => setForm((f) => ({ ...f, order_index: parseInt(e.target.value) || 0 }))} />
+                    <Input id="order" type="number" value={Number.isNaN(form.order_index) ? "" : form.order_index} onChange={(e) => setForm((f) => ({ ...f, order_index: e.target.valueAsNumber }))} />
                   </div>
                    <div className="flex items-end pb-2">
                      <div className="flex items-center space-x-2">
