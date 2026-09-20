@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { usePostHog } from 'posthog-js/react';
 import { z } from 'zod';
 import { chunk, fetchCampaignBySlug, fetchQuestions, submitApplication } from '@/lib/recruitment';
 import { Button } from '@/components/ui/button';
@@ -25,6 +26,7 @@ const applicantSchema = z.object({
 export default function Apply() {
   const { slug } = useParams<{ slug: string }>();
   const { toast } = useToast();
+  const posthog = usePostHog();
   const [applicantName, setApplicantName] = useState('');
   const [applicantEmail, setApplicantEmail] = useState('');
   const [applicantPhone, setApplicantPhone] = useState('');
@@ -160,6 +162,11 @@ export default function Apply() {
         files,
       });
       setSubmitted(true);
+      posthog?.capture('recruitment_application_submitted', {
+        campaign_id: campaign.id,
+        campaign_slug: slug,
+        campaign_type: campaign.type,
+      });
       toast({ title: 'Aplicație trimisă!', description: 'Îți mulțumim, te vom contacta în curând.' });
     } catch (error) {
       toast({

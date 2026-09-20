@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { usePostHog } from "posthog-js/react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +12,7 @@ import { Loader2, Mail, MapPin, Phone, Send } from "lucide-react";
 
 export default function Contact() {
   const { toast } = useToast();
+  const posthog = usePostHog();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -39,6 +41,7 @@ export default function Contact() {
       return;
     }
 
+    posthog?.capture('contact_form_submitted', { subject: formData.subject });
     toast({
       title: "Message sent!",
       description: "We will get back to you as soon as possible.",
