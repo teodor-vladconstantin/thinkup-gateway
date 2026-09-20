@@ -3,63 +3,81 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { X, ArrowRight } from "lucide-react";
 import { fetchPublishedCampaigns } from "@/lib/recruitment";
+import type { CampaignType } from "@/types/recruitment";
 
-const DISMISS_KEY = "banner-dismissed-ambassador";
+const DISMISS_KEY = "banner-dismissed-slugs";
+export const BANNER_ROW_HEIGHT_PX = 44;
+
+const BANNER_TEXT: Record<CampaignType, string> = {
+  ambassador: "Recrutările pentru Elevi Ambasadori sunt deschise!",
+  mentor: "Recrutările pentru Mentori sunt deschise!",
+};
+
+function readDismissed(): Set<string> {
+  try {
+    return new Set(JSON.parse(localStorage.getItem(DISMISS_KEY) ?? "[]"));
+  } catch {
+    return new Set();
+  }
+}
 
 export default function AnnouncementBanner({
-  onVisibilityChange,
+  onVisibleCountChange,
 }: {
-  onVisibilityChange: (visible: boolean) => void;
+  onVisibleCountChange: (count: number) => void;
 }) {
-  const [dismissed, setDismissed] = useState(() => {
-    try {
-      return localStorage.getItem(DISMISS_KEY) === "1";
-    } catch {
-      return false;
-    }
-  });
+  const [dismissedSlugs, setDismissedSlugs] = useState<Set<string>>(readDismissed);
 
   const { data: campaigns } = useQuery({
     queryKey: ["published-campaigns"],
     queryFn: fetchPublishedCampaigns,
   });
 
-  const ambassadorCampaign = campaigns?.find((c) => c.type === "ambassador");
-  const visible = !dismissed && !!ambassadorCampaign;
+  const visible = (campaigns ?? []).filter((c) => !dismissedSlugs.has(c.slug));
 
   useEffect(() => {
-    onVisibilityChange(visible);
-  }, [visible, onVisibilityChange]);
+    onVisibleCountChange(visible.length);
+  }, [visible.length, onVisibleCountChange]);
 
-  if (!visible) return null;
-
-  const dismiss = () => {
-    setDismissed(true);
-    try {
-      localStorage.setItem(DISMISS_KEY, "1");
-    } catch {
-      // ignore storage errors (private mode, etc.)
-    }
+  const dismiss = (slug: string) => {
+    setDismissedSlugs((prev) => {
+      const next = new Set(prev).add(slug);
+      try {
+        localStorage.setItem(DISMISS_KEY, JSON.stringify([...next]));
+      } catch {
+        // ignore storage errors (private mode, etc.)
+      }
+      return next;
+    });
   };
 
+  if (!visible.length) return null;
+
   return (
-    <div className="fixed top-0 left-0 right-0 z-[60] h-11 w-full bg-purple-600 text-white text-sm font-medium flex items-center justify-center gap-3 px-4">
-      <Link
-        to={`/aplica/${ambassadorCampaign!.slug}`}
-        className="flex items-center gap-2 hover:underline underline-offset-2"
-      >
-        <span>🎉 Recrutările pentru Elevi Ambasadori sunt deschise!</span>
-        <span className="inline-flex items-center gap-1 font-semibold">
-          Aplică acum <ArrowRight className="h-3.5 w-3.5" />
-        </span>
-      </Link>
-      <button
-        onClick={dismiss}
-        aria-label="Închide anunțul"
-        className="absolute right-3 p-1 rounded-full hover:bg-white/20 transition-colors"
-      >
-        <X className="h-4 w-4" />
-      </button>
+    <div className="fixed top-0 left-0 right-0 z-[60]">
+      {visible.map((campaign) => (
+        <div
+          key={campaign.slug}
+          className="relative h-11 w-full bg-purple-600 text-white text-sm font-medium flex items-center justify-center gap-3 px-4"
+        >
+          <Link
+            to={`/aplica/${campaign.slug}`}
+            className="flex items-center gap-2 hover:underline underline-offset-2"
+          >
+            <span>🎉 {BANNER_TEXT[campaign.type]}</span>
+            <span className="inline-flex items-center gap-1 font-semibold">
+              Aplică acum <ArrowRight className="h-3.5 w-3.5" />
+            </span>
+          </Link>
+          <button
+            onClick={() => dismiss(campaign.slug)}
+            aria-label="Închide anunțul"
+            className="absolute right-3 p-1 rounded-full hover:bg-white/20 transition-colors"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      ))}
     </div>
   );
 }
