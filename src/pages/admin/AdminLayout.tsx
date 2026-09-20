@@ -1,5 +1,6 @@
 import { useEffect, useState, createContext, useContext } from "react";
 import { Outlet, useNavigate, Link, useLocation } from "react-router-dom";
+import { usePostHog } from "posthog-js/react";
 import { supabase } from "@/integrations/supabase/client";
 import { LayoutDashboard, Users, Building2, FileText, Handshake, Inbox, MessageSquare, Settings, LogOut, Menu, X } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
@@ -24,6 +25,7 @@ const navItems = [
 export default function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
+  const posthog = usePostHog();
   const [user, setUser] = useState<User | null>(null);
   const [role, setRole] = useState<string | null>(null);
   const [profile, setProfile] = useState<any>(null);
@@ -64,8 +66,9 @@ export default function AdminLayout() {
           .select("*")
           .eq("user_id", session.user.id)
           .single();
-          
+
         setProfile(prof);
+        posthog?.identify(session.user.id, { email: session.user.email, role: userRole });
       } catch (error) {
         console.error("Auth check failed:", error);
         navigate("/admin/login");
@@ -81,12 +84,13 @@ export default function AdminLayout() {
         setUser(null);
         setRole(null);
         setProfile(null);
+        posthog?.reset();
         navigate("/admin/login");
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, posthog]);
 
   useEffect(() => {
     if (loading || !role) return;
