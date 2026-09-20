@@ -2,17 +2,17 @@ import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
-import AnnouncementBanner from "./AnnouncementBanner";
+import AnnouncementBanner, { BANNER_ROW_HEIGHT_PX } from "./AnnouncementBanner";
 
 export default function PublicLayout() {
-  const [bannerVisible, setBannerVisible] = useState(true);
+  const [bannerCount, setBannerCount] = useState(1);
 
   return (
     <div
       className="min-h-screen flex flex-col"
-      style={{ "--banner-h": bannerVisible ? "2.75rem" : "0px" } as React.CSSProperties}
+      style={{ "--banner-h": `${bannerCount * BANNER_ROW_HEIGHT_PX}px` } as React.CSSProperties}
     >
-      <AnnouncementBanner onVisibilityChange={setBannerVisible} />
+      <AnnouncementBanner onVisibleCountChange={setBannerCount} />
       <Navbar />
       <div style={{ height: "var(--banner-h)" }} />
       <main className="flex-1">
