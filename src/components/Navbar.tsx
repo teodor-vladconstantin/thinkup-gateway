@@ -45,7 +45,7 @@ export default function Navbar() {
     <>
       <nav
         className={cn(
-          "fixed top-0 z-50 w-full transition-all duration-500",
+          "fixed top-[var(--banner-h,0px)] z-50 w-full transition-all duration-500",
           scrolled
             ? "bg-gradient-to-r from-[#1a0b2e]/95 via-[#1a0b2e]/90 to-[#1a0b2e]/95 backdrop-blur-md border-b border-purple-500/20 shadow-lg shadow-purple-500/10"
             : "md:bg-transparent bg-[#1a0b2e]/80 md:border-transparent border-b border-white/10 backdrop-blur-sm"
