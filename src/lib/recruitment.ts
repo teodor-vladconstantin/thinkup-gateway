@@ -33,10 +33,13 @@ export async function fetchCampaignBySlug(slug: string): Promise<Campaign | null
 }
 
 export async function fetchPublishedCampaigns(): Promise<Campaign[]> {
+  const now = new Date().toISOString();
   const { data, error } = await supabase
     .from('recruitment_campaigns')
     .select('*')
     .eq('status', 'published')
+    .or(`opens_at.is.null,opens_at.lte.${now}`)
+    .or(`closes_at.is.null,closes_at.gt.${now}`)
     .order('created_at', { ascending: true });
   if (error) throw error;
   return (data ?? []) as Campaign[];
@@ -83,6 +86,11 @@ export async function updateCampaignStatus(id: string, status: CampaignStatus): 
   const { error } = await supabase.from('recruitment_campaigns').update({ status }).eq('id', id);
   if (error) throw error;
 }
+
+// Campaigns are created by pasting a bare "YYYY-MM-DDTHH:mm" wall-clock value straight into
+// a TIMESTAMPTZ column, so round-trip the same digits for <input type="datetime-local">
+// rather than reinterpreting them through a timezone conversion.
+export const isoToLocalInput = (iso: string | null) => (iso ? iso.slice(0, 16) : '');
 
 // ---- Questions ---------------------------------------------------------
 
