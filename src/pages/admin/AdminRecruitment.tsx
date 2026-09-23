@@ -3,10 +3,11 @@ import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { fetchAllCampaigns, updateCampaignStatus } from '@/lib/recruitment';
+import { fetchAllCampaigns, isoToLocalInput, updateCampaign, updateCampaignStatus } from '@/lib/recruitment';
 import { campaignStatusLabels, campaignTypeLabels, type CampaignStatus, type CampaignType } from '@/types/recruitment';
 import { Plus, Settings2, Eye, Users } from 'lucide-react';
 
@@ -23,6 +24,15 @@ export default function AdminRecruitmentList() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-campaigns'] });
       toast({ title: 'Status actualizat' });
+    },
+    onError: (error: Error) => toast({ title: 'Actualizarea a eșuat', description: error.message, variant: 'destructive' }),
+  });
+
+  const closesAtMutation = useMutation({
+    mutationFn: ({ id, closes_at }: { id: string; closes_at: string | null }) => updateCampaign(id, { closes_at }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-campaigns'] });
+      toast({ title: 'Data de închidere actualizată' });
     },
     onError: (error: Error) => toast({ title: 'Actualizarea a eșuat', description: error.message, variant: 'destructive' }),
   });
@@ -82,17 +92,18 @@ export default function AdminRecruitmentList() {
                 <TableHead>Campanie</TableHead>
                 <TableHead>Tip</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Închidere</TableHead>
                 <TableHead className="text-right">Acțiuni</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="h-24 text-center text-gray-500">Se încarcă...</TableCell>
+                  <TableCell colSpan={5} className="h-24 text-center text-gray-500">Se încarcă...</TableCell>
                 </TableRow>
               ) : filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="h-24 text-center text-gray-500">Nicio campanie găsită.</TableCell>
+                  <TableCell colSpan={5} className="h-24 text-center text-gray-500">Nicio campanie găsită.</TableCell>
                 </TableRow>
               ) : (
                 filtered.map((campaign) => (
@@ -118,6 +129,18 @@ export default function AdminRecruitmentList() {
                           <SelectItem value="closed">{campaignStatusLabels.closed}</SelectItem>
                         </SelectContent>
                       </Select>
+                    </TableCell>
+                    <TableCell>
+                      <Input
+                        type="datetime-local"
+                        defaultValue={isoToLocalInput(campaign.closes_at)}
+                        onBlur={(event) => {
+                          const value = event.target.value || null;
+                          if (value === isoToLocalInput(campaign.closes_at)) return;
+                          closesAtMutation.mutate({ id: campaign.id, closes_at: value });
+                        }}
+                        className="h-8 w-[190px]"
+                      />
                     </TableCell>
                     <TableCell>
                       <div className="flex justify-end gap-2">

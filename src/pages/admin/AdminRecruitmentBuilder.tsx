@@ -14,6 +14,7 @@ import {
   deleteQuestion,
   fetchCampaign,
   fetchQuestions,
+  isoToLocalInput,
   updateCampaign,
   updateCampaignStatus,
   updateQuestion,
@@ -39,6 +40,8 @@ export default function AdminRecruitmentBuilder() {
   const [draft, setDraft] = useState<CampaignQuestion[]>([]);
   const [titleDraft, setTitleDraft] = useState('');
   const [descriptionDraft, setDescriptionDraft] = useState('');
+  const [opensAtDraft, setOpensAtDraft] = useState('');
+  const [closesAtDraft, setClosesAtDraft] = useState('');
   const [optionsText, setOptionsText] = useState<Record<string, string>>({});
   const [isDirty, setIsDirty] = useState(false);
   const [autosaveState, setAutosaveState] = useState<'idle' | 'saved' | 'error'>('idle');
@@ -55,6 +58,8 @@ export default function AdminRecruitmentBuilder() {
     if (campaign && !isDirty) {
       setTitleDraft(campaign.title);
       setDescriptionDraft(campaign.description ?? '');
+      setOpensAtDraft(isoToLocalInput(campaign.opens_at));
+      setClosesAtDraft(isoToLocalInput(campaign.closes_at));
     }
   }, [campaign, isDirty]);
 
@@ -114,7 +119,12 @@ export default function AdminRecruitmentBuilder() {
         ),
       );
 
-      await updateCampaign(id!, { title: titleDraft.trim(), description: descriptionDraft.trim() || null });
+      await updateCampaign(id!, {
+        title: titleDraft.trim(),
+        description: descriptionDraft.trim() || null,
+        opens_at: opensAtDraft || null,
+        closes_at: closesAtDraft || null,
+      });
     },
     onSuccess: () => {
       setIsDirty(false);
@@ -138,7 +148,7 @@ export default function AdminRecruitmentBuilder() {
     }, AUTOSAVE_DELAY_MS);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [draft, titleDraft, descriptionDraft, isDirty]);
+  }, [draft, titleDraft, descriptionDraft, opensAtDraft, closesAtDraft, isDirty]);
 
   const addQuestion = () => {
     setIsDirty(true);
@@ -244,6 +254,27 @@ export default function AdminRecruitmentBuilder() {
           <div className="space-y-2">
             <Label>Descriere</Label>
             <Textarea value={descriptionDraft} onChange={(event) => { setIsDirty(true); setDescriptionDraft(event.target.value); }} />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="opensAt">Deschidere (opțional)</Label>
+              <Input
+                id="opensAt"
+                type="datetime-local"
+                value={opensAtDraft}
+                onChange={(event) => { setIsDirty(true); setOpensAtDraft(event.target.value); }}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="closesAt">Închidere (opțional)</Label>
+              <Input
+                id="closesAt"
+                type="datetime-local"
+                value={closesAtDraft}
+                onChange={(event) => { setIsDirty(true); setClosesAtDraft(event.target.value); }}
+              />
+              <p className="text-xs text-gray-500">După această dată, campania nu mai apare public și nu mai acceptă aplicații — automat, fără să schimbi statusul.</p>
+            </div>
           </div>
         </CardContent>
       </Card>
