@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@/components/ui/badge';
@@ -63,9 +63,15 @@ export default function AdminRecruitmentApplicants() {
   });
 
   const [isExporting, setIsExporting] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<ApplicationStatus | 'all'>('all');
+
+  const filteredApplications = useMemo(
+    () => (applications ?? []).filter((application) => statusFilter === 'all' || application.status === statusFilter),
+    [applications, statusFilter],
+  );
 
   const exportCsv = async () => {
-    if (!applications?.length) return;
+    if (!filteredApplications.length) return;
     setIsExporting(true);
     try {
       const filePaths = (answers ?? []).map((a) => a.file_path).filter((p): p is string => Boolean(p));
@@ -86,7 +92,7 @@ export default function AdminRecruitmentApplicants() {
       };
 
       const header = ['Nume', 'Email', 'Telefon', 'Status', 'Data', ...(questions ?? []).map((q) => q.label)];
-      const rows = applications.map((application) => {
+      const rows = filteredApplications.map((application) => {
         const applicationAnswers = (answers ?? []).filter((a) => a.application_id === application.id);
         return [
           application.applicant_name,
@@ -131,18 +137,36 @@ export default function AdminRecruitmentApplicants() {
             <ArrowLeft className="h-4 w-4" /> Toate campaniile
           </Link>
           <h1 className="text-3xl font-bold tracking-tight text-gray-900">Aplicanți — {campaign.title}</h1>
-          <p className="mt-1 text-gray-500">{applications?.length ?? 0} aplicații primite.</p>
+          <p className="mt-1 text-gray-500">
+            {statusFilter === 'all'
+              ? `${applications?.length ?? 0} aplicații primite.`
+              : `${filteredApplications.length} din ${applications?.length ?? 0} aplicații.`}
+          </p>
         </div>
         <Button
           variant="outline"
           size="sm"
           onClick={exportCsv}
-          disabled={!applications?.length || isExporting}
+          disabled={!filteredApplications.length || isExporting}
           className="mt-1 shrink-0"
         >
           <Download className="mr-2 h-4 w-4" /> {isExporting ? 'Se exportă...' : 'Export CSV'}
         </Button>
       </div>
+
+      <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as ApplicationStatus | 'all')}>
+        <SelectTrigger className="w-[180px]">
+          <SelectValue placeholder="Status" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">Toate statusurile</SelectItem>
+          {(Object.keys(applicationStatusLabels) as ApplicationStatus[]).map((status) => (
+            <SelectItem key={status} value={status}>
+              {applicationStatusLabels[status]}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
       <Card>
         <CardContent className="p-0">
@@ -161,12 +185,14 @@ export default function AdminRecruitmentApplicants() {
                 <TableRow>
                   <TableCell colSpan={5} className="h-24 text-center text-gray-500">Se încarcă...</TableCell>
                 </TableRow>
-              ) : !applications?.length ? (
+              ) : !filteredApplications.length ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center text-gray-500">Niciun aplicant încă.</TableCell>
+                  <TableCell colSpan={5} className="h-24 text-center text-gray-500">
+                    {applications?.length ? 'Niciun aplicant cu acest status.' : 'Niciun aplicant încă.'}
+                  </TableCell>
                 </TableRow>
               ) : (
-                applications.map((application) => (
+                filteredApplications.map((application) => (
                   <TableRow key={application.id}>
                     <TableCell className="font-medium text-gray-900">{application.applicant_name}</TableCell>
                     <TableCell className="text-gray-600">{application.applicant_email}</TableCell>
