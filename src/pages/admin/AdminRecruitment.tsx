@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+import { DateTimePicker } from '@/components/ui/datetime-picker';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
@@ -131,15 +131,11 @@ export default function AdminRecruitmentList() {
                       </Select>
                     </TableCell>
                     <TableCell>
-                      <Input
-                        type="datetime-local"
-                        defaultValue={isoToLocalInput(campaign.closes_at)}
-                        onBlur={(event) => {
-                          const value = event.target.value || null;
-                          if (value === isoToLocalInput(campaign.closes_at)) return;
-                          closesAtMutation.mutate({ id: campaign.id, closes_at: value });
-                        }}
-                        className="h-8 w-[190px]"
+                      <DateTimePicker
+                        value={isoToLocalInput(campaign.closes_at)}
+                        onChange={(value) => closesAtMutation.mutate({ id: campaign.id, closes_at: value || null })}
+                        placeholder="Fără dată"
+                        className="w-[240px]"
                       />
                     </TableCell>
                     <TableCell>

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { DateTimePicker } from '@/components/ui/datetime-picker';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
@@ -257,21 +258,19 @@ export default function AdminRecruitmentBuilder() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="opensAt">Deschidere (opțional)</Label>
-              <Input
-                id="opensAt"
-                type="datetime-local"
+              <Label>Deschidere (opțional)</Label>
+              <DateTimePicker
                 value={opensAtDraft}
-                onChange={(event) => { setIsDirty(true); setOpensAtDraft(event.target.value); }}
+                onChange={(value) => { setIsDirty(true); setOpensAtDraft(value); }}
+                placeholder="Fără dată"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="closesAt">Închidere (opțional)</Label>
-              <Input
-                id="closesAt"
-                type="datetime-local"
+              <Label>Închidere (opțional)</Label>
+              <DateTimePicker
                 value={closesAtDraft}
-                onChange={(event) => { setIsDirty(true); setClosesAtDraft(event.target.value); }}
+                onChange={(value) => { setIsDirty(true); setClosesAtDraft(value); }}
+                placeholder="Fără dată"
               />
               <p className="text-xs text-gray-500">După această dată, campania nu mai apare public și nu mai acceptă aplicații — automat, fără să schimbi statusul.</p>
             </div>
