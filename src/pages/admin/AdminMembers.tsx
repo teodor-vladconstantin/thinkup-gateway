@@ -17,6 +17,7 @@ type MemberForm = {
   department: string;
   order_index: number;
   visible: boolean;
+  is_alumni: boolean;
   photo_url: string;
 };
 
@@ -26,6 +27,7 @@ const empty: MemberForm = {
   department: "",
   order_index: 0,
   visible: true,
+  is_alumni: false,
   photo_url: "",
 };
 
@@ -140,6 +142,7 @@ export default function AdminMembers() {
       department: m.department,
       order_index: m.order_index,
       visible: m.visible,
+      is_alumni: m.is_alumni,
       photo_url: m.photo_url ?? "",
     });
     setOpen(true);
@@ -211,6 +214,7 @@ export default function AdminMembers() {
                   <Badge variant="secondary" className="font-normal text-xs">
                     {m.role}
                   </Badge>
+                  {m.is_alumni && <Badge variant="outline" className="ml-2 font-normal text-xs">Alumni</Badge>}
                 </TableCell>
                 <TableCell className="text-muted-foreground">{m.department}</TableCell>
 
@@ -315,6 +319,14 @@ export default function AdminMembers() {
                   onCheckedChange={(v) => setForm((f) => ({ ...f, visible: v }))}
                 />
                 <Label htmlFor="visible" className="cursor-pointer">Visible on site</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="is_alumni"
+                  checked={form.is_alumni}
+                  onCheckedChange={(v) => setForm((f) => ({ ...f, is_alumni: v }))}
+                />
+                <Label htmlFor="is_alumni" className="cursor-pointer">Alumni</Label>
               </div>
             </div>
 

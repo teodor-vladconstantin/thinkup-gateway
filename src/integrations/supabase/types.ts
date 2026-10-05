@@ -90,6 +90,7 @@ export type Database = {
           photo_url: string | null
           role: string
           visible: boolean
+          is_alumni: boolean
         }
         Insert: {
           created_at?: string
@@ -100,6 +101,7 @@ export type Database = {
           photo_url?: string | null
           role: string
           visible?: boolean
+          is_alumni?: boolean
         }
         Update: {
           created_at?: string
@@ -110,6 +112,7 @@ export type Database = {
           photo_url?: string | null
           role?: string
           visible?: boolean
+          is_alumni?: boolean
         }
         Relationships: []
       }
