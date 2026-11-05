@@ -85,3 +85,7 @@ The `supabase/create_admin.sql` and `supabase/create_blog_editor.sql` scripts co
 ## Deployment
 
 The production site is deployed at [think-up.academy](https://think-up.academy).
+
+## License
+
+Released under the MIT License (see `LICENSE`), copyright (c) 2026 Teodor-Vlad Constantin. Developed for ThinkUp Academy and published with its permission and with the consent of the contributors. The ThinkUp name and logo remain the property of ThinkUp Academy and are not covered by the license.
