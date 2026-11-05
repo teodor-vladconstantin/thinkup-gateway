@@ -42,13 +42,16 @@ Application and recruitment portal for **ThinkUp Academy**. It serves the public
 
 ```sh
 # Clone the repository
-git clone <YOUR_GIT_URL>
+git clone https://github.com/<owner>/thinkup-gateway.git
 
 # Navigate to the project directory
 cd thinkup-gateway
 
 # Install dependencies
 npm install
+
+# Configure environment (see below)
+cp .env.example .env
 
 # Start the development server
 npm run dev
@@ -65,7 +68,19 @@ npm run test:watch   # Run tests in watch mode
 npm run preview       # Preview the production build locally
 ```
 
-You'll also need a Supabase project configured, with the corresponding environment variables (e.g. `VITE_SUPABASE_URL`) available to the app.
+## Environment variables
+
+Copy `.env.example` to `.env` and fill in your own values (`.env` is git-ignored):
+
+| Variable | Purpose |
+|---|---|
+| `VITE_SUPABASE_URL` | Supabase project URL |
+| `VITE_SUPABASE_PROJECT_ID` | Supabase project ID |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Supabase anon (public) key |
+| `VITE_SENTRY_DSN` | Sentry DSN (optional) |
+| `VITE_PUBLIC_POSTHOG_KEY` / `VITE_PUBLIC_POSTHOG_HOST` | PostHog analytics (optional) |
+
+The `supabase/create_admin.sql` and `supabase/create_blog_editor.sql` scripts contain placeholder emails and passwords; replace them before running.
 
 ## Deployment
 
