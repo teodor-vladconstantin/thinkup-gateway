@@ -91,6 +91,8 @@ export type Database = {
           role: string
           visible: boolean
           is_alumni: boolean
+          exec_role: string | null
+          exec_order: number | null
         }
         Insert: {
           created_at?: string
@@ -102,6 +104,8 @@ export type Database = {
           role: string
           visible?: boolean
           is_alumni?: boolean
+          exec_role?: string | null
+          exec_order?: number | null
         }
         Update: {
           created_at?: string
@@ -113,6 +117,8 @@ export type Database = {
           role?: string
           visible?: boolean
           is_alumni?: boolean
+          exec_role?: string | null
+          exec_order?: number | null
         }
         Relationships: []
       }
