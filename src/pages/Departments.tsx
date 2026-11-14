@@ -73,7 +73,7 @@ export default function Departments() {
     ).sort((a, b) =>
       isExec(dept.name)
         ? (a.exec_order ?? 999) - (b.exec_order ?? 999)
-        : 0,
+        : Number(/director/i.test(b.role)) - Number(/director/i.test(a.role)),
     ),
     alumni:
       members?.filter((m) => m.department === dept.name && m.is_alumni) ?? [],
