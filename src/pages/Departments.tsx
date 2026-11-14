@@ -4,7 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { User, Users } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 
-function MemberCard({ m }: { m: Tables<"members"> }) {
+function MemberCard({ m, exec }: { m: Tables<"members">; exec?: boolean }) {
   return (
     <div className="group relative bg-white rounded-2xl p-8 text-center shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
       <div className="relative mb-6 mx-auto w-32 h-32">
@@ -26,7 +26,7 @@ function MemberCard({ m }: { m: Tables<"members"> }) {
         {m.full_name}
       </h3>
       <p className="text-sm font-medium text-purple-600 uppercase tracking-wider mb-4">
-        {m.role}
+        {exec ? m.exec_role ?? m.role : m.role}
       </p>
 
       <div className="w-12 h-1 bg-purple-100 mx-auto rounded-full group-hover:w-24 group-hover:bg-purple-300 transition-all duration-300" />
@@ -60,10 +60,21 @@ export default function Departments() {
 
   const isLoading = isDepartmentsLoading || isMembersLoading;
 
+  // VPs (exec_role set) show in Executive Board too, besides their own department.
+  const isExec = (name: string) => name === "Executive Board";
   const grouped = departments?.map((dept) => ({
     ...dept,
-    members:
-      members?.filter((m) => m.department === dept.name && !m.is_alumni) ?? [],
+    members: (
+      members?.filter(
+        (m) =>
+          !m.is_alumni &&
+          (m.department === dept.name || (isExec(dept.name) && m.exec_role)),
+      ) ?? []
+    ).sort((a, b) =>
+      isExec(dept.name)
+        ? (a.exec_order ?? 999) - (b.exec_order ?? 999)
+        : 0,
+    ),
     alumni:
       members?.filter((m) => m.department === dept.name && m.is_alumni) ?? [],
   }));
@@ -117,7 +128,7 @@ export default function Departments() {
                   {dept.members.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                       {dept.members.map((m) => (
-                        <MemberCard key={m.id} m={m} />
+                        <MemberCard key={m.id} m={m} exec={isExec(dept.name)} />
                       ))}
                     </div>
                   ) : (
